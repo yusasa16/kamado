@@ -1,0 +1,57 @@
+{
+	"name": "kamado-monorepo",
+	"description": "Bake your HTML hard. The on-demand static site generator.",
+	"repository": "https://github.com/d-zero-dev/kamado.git",
+	"author": "D-ZERO Co., Ltd.",
+	"license": "MIT",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "lerna run build",
+		"dev": "lerna run dev",
+		"test": "vitest run --test-timeout 60000",
+		"lint": "run-s lint:eslint lint:prettier lint:textlint lint:cspell",
+		"lint:cspell": "npx cspell --no-progress --show-suggestions \"**\"",
+		"lint:eslint": "npx eslint --fix \"./{*,**/*}.{js,cjs,mjs}\"",
+		"lint:prettier": "npx prettier --write \"{*,./**/*}{.{md,mdc,mdx,js,jsx,ts,tsx,css,pug,html},*rc}\" \"!**/dist/**/*\"",
+		"lint:textlint": "npx textlint --fix \"{*,./**/*}.{md,mdc}\" && npx textlint \"{*,./**/*}.{md,mdc}\"",
+		"release": "lerna publish --exact --conventional-commits --conventional-graduate",
+		"release:alpha:latest": "lerna publish --exact --force-publish --conventional-commits --conventional-prerelease --preid alpha",
+		"release:beta:latest": "lerna publish --exact --force-publish --conventional-commits --conventional-prerelease --preid beta",
+		"release:next": "lerna publish --dist-tag next --exact --force-publish --conventional-commits --conventional-prerelease --preid alpha",
+		"prepare": "husky",
+		"commit": "npx cz",
+		"co": "npx cz",
+		"up": "yarn upgrade-interactive --latest"
+	},
+	"workspaces": [
+		"packages/*"
+	],
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-customizable"
+		},
+		"cz-customizable": {
+			"config": "./node_modules/@d-zero/cz-config"
+		}
+	},
+	"devDependencies": {
+		"@d-zero/commitlint-config": "5.0.0-alpha.73",
+		"@d-zero/cspell-config": "5.0.0-alpha.73",
+		"@d-zero/eslint-config": "5.0.0-alpha.73",
+		"@d-zero/lint-staged-config": "5.0.0-alpha.73",
+		"@d-zero/prettier-config": "5.0.0-alpha.73",
+		"@d-zero/textlint-config": "5.0.0-alpha.73",
+		"@d-zero/tsconfig": "0.5.0",
+		"husky": "9.1.7",
+		"lerna": "9.0.1",
+		"npm-run-all2": "8.0.4",
+		"typescript": "5.9.3",
+		"vitest": "4.0.13"
+	},
+	"packageManager": "yarn@4.12.0",
+	"volta": {
+		"node": "24.11.1",
+		"yarn": "4.12.0"
+	}
+}

@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os:
+          - macOS-latest
+        node: [24]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Enable Corepack and setup Yarn v4
+        run: |
+          corepack enable
+          yarn --version
+
+      - name: Cache dependencies
+        id: cache-depends
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: '**/node_modules'
+          key: os-${{ matrix.os }}-node${{ matrix.node }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies for Renovate/Dependabot
+        if: github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]'
+        run: yarn install --refresh-lockfile
+
+      - name: Install dependencies for normal PRs
+        if: github.actor != 'renovate[bot]' && github.actor != 'dependabot[bot]'
+        run: yarn install --immutable
+
+      - name: Compile
+        run: yarn build
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test
