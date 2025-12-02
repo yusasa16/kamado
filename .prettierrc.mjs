@@ -1,5 +1,1 @@
-import prettierConfig from '@d-zero/prettier-config';
-
-export default {
-	...prettierConfig,
-};
+export { default } from '@d-zero/prettier-config/base';

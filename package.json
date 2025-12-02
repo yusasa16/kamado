@@ -12,7 +12,7 @@
 		"test": "vitest run --test-timeout 60000",
 		"lint": "run-s lint:eslint lint:prettier lint:textlint lint:cspell",
 		"lint:cspell": "npx cspell --no-progress --show-suggestions \"**\"",
-		"lint:eslint": "npx eslint --fix \"./{*,**/*}.{js,cjs,mjs}\"",
+		"lint:eslint": "npx eslint --fix \"./{*,packages/**/src/{*,**/*}}.{ts,js,cjs,mjs}\"",
 		"lint:prettier": "npx prettier --write \"{*,./**/*}{.{md,mdc,mdx,js,jsx,ts,tsx,css,pug,html},*rc}\" \"!**/dist/**/*\"",
 		"lint:textlint": "npx textlint --fix \"{*,./**/*}.{md,mdc}\" && npx textlint \"{*,./**/*}.{md,mdc}\"",
 		"release": "lerna publish --exact --conventional-commits --conventional-graduate",
@@ -45,6 +45,7 @@
 		"@d-zero/tsconfig": "0.5.0",
 		"husky": "9.1.7",
 		"lerna": "9.0.1",
+		"memfs": "4.51.1",
 		"npm-run-all2": "8.0.4",
 		"typescript": "5.9.3",
 		"vitest": "4.0.13"
