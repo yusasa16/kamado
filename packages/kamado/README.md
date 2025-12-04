@@ -1,5 +1,9 @@
 # Kamado
 
+[![npm version](https://badge.fury.io/js/kamado.svg)](https://www.npmjs.com/package/kamado) |
+
+![kamado](https://cdn.jsdelivr.net/gh/d-zero-dev/kamado@main/assets/kamado_logo.png)
+
 **Kamado is an extremely simple static site build tool.** No hydration, no client-side runtime, no magic. **No runtime needed**, just the file system and raw HTML. Baked on demand. Thoroughly baked in a Kamado, that is what Kamado is.
 
 ## Project Overview

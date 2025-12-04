@@ -1,5 +1,9 @@
 # Kamado
 
+[![npm version](https://badge.fury.io/js/kamado.svg)](https://www.npmjs.com/package/kamado) |
+
+![kamado](https://cdn.jsdelivr.net/gh/d-zero-dev/kamado@main/assets/kamado_logo.png)
+
 **Kamadoは極めてシンプルな静的サイトビルドツールです。** ハイドレーションなし、クライアントサイドランタイムなし、マジックなし。**ランタイム不要**で、ファイルシステムと生のHTMLだけ。オンデマンドで焼き上げます。かまどでじっくり焼き上げる、それがKamadoです。
 
 ## プロジェクト概要
