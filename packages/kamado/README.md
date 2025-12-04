@@ -12,14 +12,6 @@ Kamado is a static site build tool similar to 11ty, but aims for a simpler desig
 
 **The biggest feature of Kamado is that it requires absolutely no runtime.** No client-side runtime (hydration) is needed. Because it generates pure static HTML, it achieves persistence and robustness. It generates HTML that will work just the same 10 years, or even 20 years from now.
 
-### Difference from 11ty/Astro
-
-- Simpler design
-- **No Runtime** - No client-side runtime (hydration) needed
-- Designed to be used with esbuild or vite
-
-### Difference from Other Tools
-
 Modern frameworks like Astro or Next.js require a runtime. Kamado does not depend on a runtime and generates pure static HTML. It is a tool for developers who prefer legacy approaches and do not want to depend on a runtime.
 
 ## Key Features
