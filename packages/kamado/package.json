@@ -16,7 +16,9 @@
 		"./config": "./dist/config/index.js",
 		"./compiler/page": "./dist/compiler/page.js",
 		"./compiler/style": "./dist/compiler/style.js",
-		"./compiler/script": "./dist/compiler/script.js"
+		"./compiler/script": "./dist/compiler/script.js",
+		"./data": "./dist/data/index.js",
+		"./path": "./dist/path/index.js"
 	},
 	"scripts": {
 		"build": "tsc --project tsconfig.build.json",
