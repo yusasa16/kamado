@@ -4,6 +4,8 @@ import path from 'node:path';
 
 import grayMatter from 'gray-matter';
 
+import { computeOutputPath } from '../path/output-path.js';
+
 import { getFileContent } from './file-content.js';
 
 interface GetFileOptions {
@@ -31,34 +33,38 @@ interface GetFileOptions {
  * ```
  */
 export function getFile(filePath: string, options: GetFileOptions): CompilableFile {
-	const extension = path.extname(filePath).toLowerCase();
-	const name = path.basename(filePath, extension);
-	const dir = path.dirname(filePath);
-	const relDir = path.relative(options.inputDir, dir);
-	const rootRelPath = path.join(relDir, name);
-	const filePathStem = '/' + rootRelPath.replaceAll(path.sep, '/');
-	const fileType = extension.slice(1);
+	const fileType = path.extname(filePath).toLowerCase().slice(1);
 	const outputFileType: OutputFileType =
 		// @ts-ignore
 		options.extensions[fileType] ?? '#error';
-	const outputExtension = detectOutputExtension(outputFileType);
-	const rootRelPathWithExt = `${rootRelPath}${outputExtension}`;
-	const url =
-		'/' +
-		rootRelPathWithExt
-			.replaceAll(path.sep, '/')
-			.replace(/(?<=\/|^)index(?:\.[a-z]+)?$/, '');
 
 	if (outputFileType === '#error') {
 		throw new Error(`Unsupported file type: ${fileType}`);
 	}
 
+	const outputExtension = detectOutputExtension(outputFileType);
+	const pathInfo = computeOutputPath(
+		filePath,
+		options.inputDir,
+		options.outputDir,
+		outputExtension,
+	);
+
+	const filePathStem = '/' + pathInfo.rootRelPath.replaceAll(path.sep, '/');
+	const url =
+		'/' +
+		pathInfo.rootRelPathWithExt
+			.replaceAll(path.sep, '/')
+			.replace(/(?<=\/|^)index(?:\.[a-z]+)?$/, '');
+
+	const dir = path.dirname(filePath);
+
 	return {
 		inputPath: filePath,
-		outputPath: path.resolve(options.outputDir, rootRelPathWithExt),
-		fileSlug: name === 'index' ? path.basename(dir) : name,
+		outputPath: pathInfo.outputPath,
+		fileSlug: pathInfo.name === 'index' ? path.basename(dir) : pathInfo.name,
 		filePathStem,
-		extension,
+		extension: pathInfo.extension,
 		outputFileType,
 		date: new Date(),
 		url,
