@@ -8937,7 +8937,6 @@ __metadata:
     "@d-zero/prettier-config": "npm:5.0.0-alpha.73"
     "@d-zero/textlint-config": "npm:5.0.0-alpha.73"
     "@d-zero/tsconfig": "npm:0.5.0"
-    fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
     lerna: "npm:9.0.1"
     memfs: "npm:4.51.1"
