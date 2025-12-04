@@ -20,7 +20,9 @@ For detailed usage and configuration, please refer to the documentation below:
 
 This repository is a monorepo managed by Lerna.
 
-- `packages/kamado`: The core logic of the static site generator.
+| Package           | Description                                  | Version                                                                                     |
+| ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `packages/kamado` | The core logic of the static site generator. | [![npm version](https://badge.fury.io/js/kamado.svg)](https://www.npmjs.com/package/kamado) |
 
 ## Development
 
