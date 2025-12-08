@@ -17,3 +17,7 @@ yarn-error.log
 
 # claude
 .claude/
+
+# build outputs
+packages/@kamado-io/*/dist/
+packages/@kamado-io/*/tsconfig.build.tsbuildinfo
