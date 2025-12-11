@@ -56,7 +56,7 @@ describe('getAssetGroup with virtual file system', async () => {
 		vol.reset();
 	});
 
-	test.only('use no compiler', async () => {
+	test('use no compiler', async () => {
 		const globalData = await getGlobalData('/mock/input/data', config);
 
 		expect(globalData.data1.name).toBe('John');
