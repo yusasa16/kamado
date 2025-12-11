@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 
-import esbuild from 'esbuild';
 import { createCompiler } from 'kamado/compiler';
 import { createBanner, type CreateBanner } from 'kamado/compiler/banner';
 
@@ -40,23 +39,33 @@ export interface ScriptCompilerOptions {
  * };
  * ```
  */
-export const scriptCompiler = createCompiler<ScriptCompilerOptions>((options) => () => {
-	return async (file) => {
-		const banner =
-			typeof options?.banner === 'string'
-				? options.banner
-				: createBanner(options?.banner?.());
-		await esbuild.build({
-			entryPoints: [file.inputPath],
-			bundle: true,
-			alias: options?.alias,
-			outfile: file.outputPath,
-			minify: options?.minifier,
-			charset: 'utf8',
-			banner: {
-				js: banner,
-			},
-		});
-		return await fs.readFile(file.outputPath, 'utf8');
-	};
-});
+export const scriptCompiler = createCompiler<ScriptCompilerOptions>(
+	(options) => async () => {
+		/**
+		 * When loading kamado.config.ts via getConfig(cosmiconfig),
+		 * if that kamado.config.ts invokes this compiler,
+		 * and getConfig is executed with --experimental-strip-types enabled,
+		 * using a static import for esbuild will cause a special runtime error.
+		 */
+		const esbuild = await import('esbuild');
+
+		return async (file) => {
+			const banner =
+				typeof options?.banner === 'string'
+					? options.banner
+					: createBanner(options?.banner?.());
+			await esbuild.build({
+				entryPoints: [file.inputPath],
+				bundle: true,
+				alias: options?.alias,
+				outfile: file.outputPath,
+				minify: options?.minifier,
+				charset: 'utf8',
+				banner: {
+					js: banner,
+				},
+			});
+			return await fs.readFile(file.outputPath, 'utf8');
+		};
+	},
+);
