@@ -72,7 +72,7 @@ export async function getBreadcrumbs(
 
 	return breadcrumbs
 		.filter((item) => item.depth >= baseDepth)
-		.sort((a, b) => a.depth - b.depth);
+		.toSorted((a, b) => a.depth - b.depth);
 }
 
 /**
