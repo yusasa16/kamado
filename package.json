@@ -22,7 +22,7 @@
 		"prepare": "husky",
 		"commit": "npx cz",
 		"co": "npx cz",
-		"up": "yarn upgrade-interactive --latest"
+		"upgrade": "yarn upgrade-interactive"
 	},
 	"workspaces": [
 		"packages/*",
