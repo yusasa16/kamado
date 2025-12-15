@@ -1,4 +1,3 @@
-import type { PugCompilerOptions } from '@kamado-io/pug-compiler';
 import type { Options as HMTOptions } from 'html-minifier-terser';
 import type { Config } from 'kamado/config';
 import type { GetNavTreeOptions, TitleListOptions } from 'kamado/features';
@@ -7,7 +6,6 @@ import type { Options as PrettierOptions } from 'prettier';
 
 import path from 'node:path';
 
-import { compilePug } from '@kamado-io/pug-compiler';
 import c from 'ansi-colors';
 import { characterEntities } from 'character-entities';
 import fg from 'fast-glob';
@@ -65,10 +63,6 @@ export interface PageCompilerOptions {
 		 */
 		readonly contentVariableName?: string;
 	};
-	/**
-	 * Path alias for Pug templates (used as basedir)
-	 */
-	readonly pathAlias?: string;
 	/**
 	 * Configuration for automatically adding width/height attributes to images
 	 * @default true
@@ -138,71 +132,9 @@ export interface PageCompilerOptions {
 	) => Promise<string> | string;
 	/**
 	 * Compilation hooks for customizing compile process
+	 * Can be an object or a function that returns an object
 	 */
-	readonly compileHooks?: {
-		/**
-		 * Hooks for main content compilation
-		 */
-		readonly main?: {
-			/**
-			 * Hook called before compilation
-			 * @param content - Pug template content
-			 * @param data - Compile data object
-			 * @returns Processed content (can be modified)
-			 */
-			readonly before?: (content: string, data: CompileData) => Promise<string> | string;
-			/**
-			 * Hook called after compilation
-			 * @param html - Compiled HTML
-			 * @param data - Compile data object
-			 * @returns Processed HTML (can be modified)
-			 */
-			readonly after?: (html: string, data: CompileData) => Promise<string> | string;
-			/**
-			 * Custom compiler function (replaces default Pug compiler)
-			 * @param content - Pug template content
-			 * @param data - Compile data object
-			 * @param options - Pug compiler options
-			 * @returns Compiled HTML
-			 */
-			readonly compiler?: (
-				content: string,
-				data: CompileData,
-				options: PugCompilerOptions,
-			) => Promise<string> | string;
-		};
-		/**
-		 * Hooks for layout compilation
-		 */
-		readonly layout?: {
-			/**
-			 * Hook called before compilation
-			 * @param content - Pug template content
-			 * @param data - Compile data object
-			 * @returns Processed content (can be modified)
-			 */
-			readonly before?: (content: string, data: CompileData) => Promise<string> | string;
-			/**
-			 * Hook called after compilation
-			 * @param html - Compiled HTML
-			 * @param data - Compile data object
-			 * @returns Processed HTML (can be modified)
-			 */
-			readonly after?: (html: string, data: CompileData) => Promise<string> | string;
-			/**
-			 * Custom compiler function (replaces default Pug compiler)
-			 * @param content - Pug template content
-			 * @param data - Compile data object
-			 * @param options - Pug compiler options
-			 * @returns Compiled HTML
-			 */
-			readonly compiler?: (
-				content: string,
-				data: CompileData,
-				options: PugCompilerOptions,
-			) => Promise<string> | string;
-		};
-	};
+	readonly compileHooks?: CompileHooks;
 }
 
 /**
@@ -228,6 +160,72 @@ export interface CompileData extends Record<string, unknown> {
 }
 
 /**
+ * Hook function type for processing content
+ */
+export type ContentHook = (
+	content: string,
+	data: CompileData,
+) => Promise<string> | string;
+
+/**
+ * Compiler function type
+ */
+export type CompilerFunction = (
+	content: string,
+	data: CompileData,
+	extension: string,
+) => Promise<string> | string;
+
+/**
+ * Compile hook configuration
+ */
+export interface CompileHook {
+	/**
+	 * Hook called before compilation
+	 * @param content - Template content
+	 * @param data - Compile data object
+	 * @returns Processed content (can be modified)
+	 */
+	readonly before?: ContentHook;
+	/**
+	 * Hook called after compilation
+	 * @param html - Compiled HTML
+	 * @param data - Compile data object
+	 * @returns Processed HTML (can be modified)
+	 */
+	readonly after?: ContentHook;
+	/**
+	 * Custom compiler function
+	 * @param content - Template content
+	 * @param data - Compile data object
+	 * @returns Compiled HTML
+	 */
+	readonly compiler?: CompilerFunction;
+}
+
+/**
+ * Compile hooks object
+ */
+export interface CompileHooksObject {
+	/**
+	 * Hooks for main content compilation
+	 */
+	readonly main?: CompileHook;
+	/**
+	 * Hooks for layout compilation
+	 */
+	readonly layout?: CompileHook;
+}
+
+/**
+ * Compilation hooks for customizing compile process
+ * Can be an object or a function that returns an object (sync or async)
+ */
+export type CompileHooks =
+	| CompileHooksObject
+	| ((options: PageCompilerOptions) => CompileHooksObject | Promise<CompileHooksObject>);
+
+/**
  * File path information
  */
 export interface Paths {
@@ -247,7 +245,8 @@ export interface Paths {
 
 /**
  * Page compiler
- * Compiles Pug templates to HTML, applies layouts, and formats the output.
+ * A generic container compiler that applies layouts and formats the output.
+ * Template compilation is handled via `compileHooks`.
  * @example
  * ```typescript
  * const config = {
@@ -290,12 +289,6 @@ export const pageCompiler = createCompiler<PageCompilerOptions>(
 				optimizeTitle: options?.optimizeTitle,
 			});
 
-			const pugCompilerOptions = {
-				basedir: options?.pathAlias,
-				doctype: 'html',
-				pretty: true,
-			};
-
 			const compileData: CompileData = {
 				...globalData,
 				...metaData,
@@ -315,50 +308,44 @@ export const pageCompiler = createCompiler<PageCompilerOptions>(
 				breadcrumbs,
 			};
 
+			// Resolve compileHooks (can be object or function)
+			const compileHooks =
+				typeof options?.compileHooks === 'function'
+					? await options.compileHooks(options)
+					: options?.compileHooks;
+
 			let mainContentHtml = pageMainContent;
 
-			switch (file.extension) {
-				case '.pug': {
-					log?.(c.yellowBright('Compiling main content...'));
-					try {
-						let content = pageMainContent;
+			// Apply compileHooks for main content (extension-independent)
+			if (compileHooks?.main) {
+				try {
+					let content = pageMainContent;
 
-						// Apply before hook
-						if (options?.compileHooks?.main?.before) {
-							content = await Promise.resolve(
-								options.compileHooks.main.before(content, compileData),
-							);
-						}
-
-						// Compile
-						if (options?.compileHooks?.main?.compiler) {
-							mainContentHtml = await Promise.resolve(
-								options.compileHooks.main.compiler(
-									content,
-									compileData,
-									pugCompilerOptions,
-								),
-							);
-						} else {
-							mainContentHtml = await compilePug(
-								content,
-								compileData,
-								pugCompilerOptions,
-							);
-						}
-
-						// Apply after hook
-						if (options?.compileHooks?.main?.after) {
-							mainContentHtml = await Promise.resolve(
-								options.compileHooks.main.after(mainContentHtml, compileData),
-							);
-						}
-					} catch (error) {
-						log?.(c.red(`❌ ${file.inputPath}`));
-						throw new Error(`Failed to compile the page: ${file.inputPath}`, {
-							cause: error,
-						});
+					// Apply before hook
+					if (compileHooks.main.before) {
+						content = await compileHooks.main.before(content, compileData);
 					}
+
+					// Compile
+					if (compileHooks.main.compiler) {
+						log?.(c.yellowBright('Compiling main content...'));
+						mainContentHtml = await compileHooks.main.compiler(
+							content,
+							compileData,
+							file.extension,
+						);
+					}
+					// If no compiler is specified, pass through as-is
+
+					// Apply after hook
+					if (compileHooks.main.after) {
+						mainContentHtml = await compileHooks.main.after(mainContentHtml, compileData);
+					}
+				} catch (error) {
+					log?.(c.red(`❌ ${file.inputPath}`));
+					throw new Error(`Failed to compile the page: ${file.inputPath}`, {
+						cause: error,
+					});
 				}
 			}
 
@@ -366,60 +353,54 @@ export const pageCompiler = createCompiler<PageCompilerOptions>(
 
 			if (metaData?.layout) {
 				const layout = layouts[metaData.layout as string];
-				if (layout) {
-					const extension = path.extname(layout.inputPath).toLowerCase();
-					switch (extension) {
-						case '.pug': {
-							log?.(c.greenBright('Compiling layout...'));
-							const { content: layoutContent } = await layout.get();
-							try {
-								const contentVariableName =
-									options?.layouts?.contentVariableName ?? 'content';
-								const layoutCompileData: CompileData = {
-									...compileData,
-									[contentVariableName]: mainContentHtml,
-								};
+				if (!layout) {
+					throw new Error(`Layout not found: ${metaData.layout}`);
+				}
 
-								let content = layoutContent;
+				const { content: layoutContent } = await layout.get();
+				const contentVariableName = options?.layouts?.contentVariableName ?? 'content';
+				const layoutCompileData: CompileData = {
+					...compileData,
+					[contentVariableName]: mainContentHtml,
+				};
 
-								// Apply before hook
-								if (options?.compileHooks?.layout?.before) {
-									content = await Promise.resolve(
-										options.compileHooks.layout.before(content, layoutCompileData),
-									);
-								}
+				// Apply compileHooks for layout (extension-independent)
+				if (compileHooks?.layout) {
+					try {
+						let content = layoutContent;
 
-								// Compile
-								if (options?.compileHooks?.layout?.compiler) {
-									html = await Promise.resolve(
-										options.compileHooks.layout.compiler(
-											content,
-											layoutCompileData,
-											pugCompilerOptions,
-										),
-									);
-								} else {
-									html = await compilePug(content, layoutCompileData, pugCompilerOptions);
-								}
-
-								// Apply after hook
-								if (options?.compileHooks?.layout?.after) {
-									html = await Promise.resolve(
-										options.compileHooks.layout.after(html, layoutCompileData),
-									);
-								}
-							} catch (error) {
-								log?.(
-									c.red(`❌ Layout: ${layout.inputPath} (Content: ${file.inputPath})`),
-								);
-								throw new Error(`Failed to compile the layout: ${layout.inputPath}`, {
-									cause: error,
-								});
-							}
+						// Apply before hook
+						if (compileHooks.layout.before) {
+							content = await compileHooks.layout.before(content, layoutCompileData);
 						}
+
+						// Compile
+						if (compileHooks.layout.compiler) {
+							log?.(c.greenBright('Compiling layout...'));
+							const layoutExtension = path.extname(layout.inputPath).toLowerCase();
+							html = await compileHooks.layout.compiler(
+								content,
+								layoutCompileData,
+								layoutExtension,
+							);
+						} else {
+							// If no compiler is specified, use layout content as-is
+							html = content;
+						}
+
+						// Apply after hook
+						if (compileHooks.layout.after) {
+							html = await compileHooks.layout.after(html, layoutCompileData);
+						}
+					} catch (error) {
+						log?.(c.red(`❌ Layout: ${layout.inputPath} (Content: ${file.inputPath})`));
+						throw new Error(`Failed to compile the layout: ${layout.inputPath}`, {
+							cause: error,
+						});
 					}
 				} else {
-					throw new Error(`Layout not found: ${metaData.layout}`);
+					// If no compileHooks.layout, use layout content as-is
+					html = layoutContent;
 				}
 			}
 

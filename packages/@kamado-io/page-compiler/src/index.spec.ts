@@ -42,7 +42,7 @@ describe('page compiler', async () => {
 		expect(result).toBe('<p>Hello, world!</p>\n');
 	});
 
-	test('should compile a page made with pug', async () => {
+	test('should pass through pug file without compiler', async () => {
 		const content = 'p Hello, world!';
 		const page: CompilableFile = {
 			inputPath: '/path/to/page.pug',
@@ -61,10 +61,49 @@ describe('page compiler', async () => {
 				}),
 		};
 		const result = await compilePage(page, {});
+		// Pug syntax is not valid HTML, so domSerialize returns empty string
+		expect(result).toBe('');
+	});
+
+	test('should compile a page made with pug using compileHooks', async () => {
+		const { compilePug } = await import('@kamado-io/pug-compiler');
+		const content = 'p Hello, world!';
+		const page: CompilableFile = {
+			inputPath: '/path/to/page.pug',
+			outputPath: '/path/to/page.html',
+			fileSlug: 'page',
+			filePathStem: '/path/to/page',
+			url: '/path/to/page',
+			extension: '.pug',
+			outputFileType: 'page',
+			date: new Date(),
+			get: () =>
+				Promise.resolve({
+					metaData: {},
+					content,
+					raw: content,
+				}),
+		};
+		const compiler = compilePug({
+			doctype: 'html',
+			pretty: true,
+		});
+		const result = await compilePage(page, {
+			compileHooks: {
+				main: {
+					compiler,
+				},
+			},
+		});
 		expect(result).toBe('<p>Hello, world!</p>\n');
 	});
 
-	test('should compile a page made with pug with layout', async () => {
+	test('should compile a page made with pug with layout using compileHooks', async () => {
+		const { compilePug } = await import('@kamado-io/pug-compiler');
+		const compiler = compilePug({
+			doctype: 'html',
+			pretty: true,
+		});
 		const page: CompilableFile = {
 			inputPath: '/path/to/page.pug',
 			outputPath: '/path/to/page.html',
@@ -97,6 +136,14 @@ describe('page compiler', async () => {
 					},
 				},
 			},
+			compileHooks: {
+				main: {
+					compiler,
+				},
+				layout: {
+					compiler,
+				},
+			},
 		});
 		expect(result).toBe(`<!DOCTYPE html>
 <html>
@@ -108,5 +155,33 @@ describe('page compiler', async () => {
   </body>
 </html>
 `);
+	});
+
+	test('should use createCompileHooks helper', async () => {
+		const { createCompileHooks } = await import('@kamado-io/pug-compiler');
+		const content = 'p Hello, world!';
+		const page: CompilableFile = {
+			inputPath: '/path/to/page.pug',
+			outputPath: '/path/to/page.html',
+			fileSlug: 'page',
+			filePathStem: '/path/to/page',
+			url: '/path/to/page',
+			extension: '.pug',
+			outputFileType: 'page',
+			date: new Date(),
+			get: () =>
+				Promise.resolve({
+					metaData: {},
+					content,
+					raw: content,
+				}),
+		};
+		const result = await compilePage(page, {
+			compileHooks: createCompileHooks({
+				doctype: 'html',
+				pretty: true,
+			}),
+		});
+		expect(result).toBe('<p>Hello, world!</p>\n');
 	});
 });

@@ -1,6 +1,6 @@
 # @kamado-io/page-compiler
 
-Page compiler for Kamado. Compiles Pug templates to HTML, applies layouts, and formats the output.
+Page compiler for Kamado. A generic container compiler that applies layouts and formats the output. Template compilation is handled via `compileHooks`.
 
 ## Installation
 
@@ -40,7 +40,6 @@ export const config: UserConfig = {
   - `dir`: Directory path where layout files are stored
   - `files`: Map of layout files
   - `contentVariableName`: Variable name for content in layout (default: `'content'`)
-- `pathAlias`: Path alias for Pug templates (used as basedir)
 - `imageSizes`: Configuration for automatically adding width/height attributes to images (default: `true`)
 - `minifier`: HTML minifier options (default: `true`)
 - `prettier`: Prettier options (default: `true`)
@@ -52,14 +51,17 @@ export const config: UserConfig = {
 - `afterSerialize`: Hook function called after DOM serialization
 - `replace`: Final HTML content replacement processing
 - `compileHooks`: Compilation hooks for customizing compile process
+  - Can be an object or a function that returns an object (sync or async)
   - `main`: Hooks for main content compilation
     - `before`: Hook called before compilation (receives content and data, returns processed content)
     - `after`: Hook called after compilation (receives HTML and data, returns processed HTML)
-    - `compiler`: Custom compiler function (replaces default Pug compiler)
+    - `compiler`: Custom compiler function `(content: string, data: CompileData, extension: string) => Promise<string> | string`
   - `layout`: Hooks for layout compilation
     - `before`: Hook called before compilation (receives content and data, returns processed content)
     - `after`: Hook called after compilation (receives HTML and data, returns processed HTML)
-    - `compiler`: Custom compiler function (replaces default Pug compiler)
+    - `compiler`: Custom compiler function `(content: string, data: CompileData, extension: string) => Promise<string> | string`
+
+**Note**: To use Pug templates, install `@kamado-io/pug-compiler` and use `createCompileHooks` helper. See the [@kamado-io/pug-compiler README](../@kamado-io/pug-compiler/README.md) for integration examples.
 
 ## Example: Using compileHooks
 
@@ -82,9 +84,10 @@ export const config: UserConfig = {
 					},
 				},
 				layout: {
-					compiler: async (content, data, options) => {
+					compiler: async (content, data, extension) => {
 						// Use custom compiler for layouts
-						return await myCustomCompiler(content, data, options);
+						// extension is the file extension (e.g., '.pug', '.html')
+						return await myCustomCompiler(content, data, extension);
 					},
 				},
 			},
