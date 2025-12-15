@@ -4,12 +4,14 @@ import { JSDOM } from 'jsdom';
  *
  * @param html
  * @param hook
+ * @param url
  */
 export async function domSerialize(
 	html: string,
 	hook: (elements: Element[], window: Window) => Promise<void> | void,
+	url?: string,
 ) {
-	const dom = getDOM(html);
+	const dom = getDOM(html, url);
 	await hook(dom.elements, dom.window);
 	const serialized = dom.elements.map((node) => node.outerHTML).join('');
 	return serialized;
@@ -18,8 +20,12 @@ export async function domSerialize(
 /**
  *
  * @param html
+ * @param url
  */
-function getDOM(html: string): {
+function getDOM(
+	html: string,
+	url?: string,
+): {
 	elements: Element[];
 	document: Document;
 	window: Window;
@@ -28,7 +34,7 @@ function getDOM(html: string): {
 	const isFragment = !/^<html(?:\s|>)|^<!doctype\s/i.test(html.trim());
 
 	if (isFragment) {
-		const window = new JSDOM('').window;
+		const window = new JSDOM('', url ? { url } : {}).window;
 		const document = window.document;
 		const tmpContainer = document.createElement('div');
 		tmpContainer.insertAdjacentHTML('beforeend', html);
@@ -41,7 +47,7 @@ function getDOM(html: string): {
 		};
 	}
 
-	const dom = new JSDOM(html);
+	const dom = new JSDOM(html, url ? { url } : {});
 
 	return {
 		elements: [dom.window.document.documentElement],
