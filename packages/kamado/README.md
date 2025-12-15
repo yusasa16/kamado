@@ -100,7 +100,6 @@ export const config: UserConfig = {
 			layouts: {
 				dir: path.resolve(import.meta.dirname, '__assets', '_libs', 'layouts'),
 			},
-			pathAlias: path.resolve(import.meta.dirname, '__assets', '_libs'),
 			async afterSerialize(elements) {
 				// DOM manipulation or custom processing here
 			},
@@ -147,6 +146,7 @@ export default config;
 Map file extensions to output types in `extensions`:
 
 - `page`: HTML pages (`.html`, `.pug`, etc.)
+  Note: To use `.pug` files, you need to install `@kamado-io/pug-compiler` and configure `compileHooks`. See [@kamado-io/pug-compiler README](../@kamado-io/pug-compiler/README.md) for details.
 - `style`: Stylesheets (`.css`, `.scss`, `.sass`, etc.)
 - `script`: Scripts (`.js`, `.ts`, `.jsx`, `.tsx`, etc.)
 - `#ignore`: Extensions to ignore
@@ -158,9 +158,11 @@ Map file extensions to output types in `extensions`:
 - `globalData.dir`: Global data file directory
 - `globalData.data`: Additional global data
 - `layouts.dir`: Layout file directory
-- `pathAlias`: Path alias for template engines
+- `compileHooks`: Compilation hooks for customizing compile process (required for Pug templates)
 - `host`: Host URL for JSDOM's url option (if not specified, uses production domain from package.json)
 - `afterSerialize`: Hook after DOM serialization
+
+**Note**: `page-compiler` is a generic container compiler and does not compile Pug templates by default. To use Pug templates, install `@kamado-io/pug-compiler` and configure `compileHooks`. See [@kamado-io/pug-compiler README](../@kamado-io/pug-compiler/README.md) for details.
 
 ##### styleCompiler
 
