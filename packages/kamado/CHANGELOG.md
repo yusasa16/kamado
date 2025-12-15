@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.1.0-alpha.5](https://github.com/d-zero-dev/kamodo/compare/v0.1.0-alpha.4...v0.1.0-alpha.5) (2025-12-15)
+
+### Features
+
+- **kamado:** add url option to JSDOM for domain configuration ([eb52576](https://github.com/d-zero-dev/kamodo/commit/eb52576ad8844520b0cfb135ba79856f77f93998))
+
 # [0.1.0-alpha.4](https://github.com/d-zero-dev/kamodo/compare/v0.1.0-alpha.3...v0.1.0-alpha.4) (2025-12-11)
 
 **Note:** Version bump only for package kamado
