@@ -17,6 +17,7 @@ interface RouteOptions {
 }
 
 const CHECK_MARK = c.green('✔');
+const ERROR_MARK = c.red('✘');
 
 /**
  * Sets routes for the application
@@ -103,12 +104,24 @@ export async function setRoute(app: Hono, config: Config, options: RouteOptions 
 
 				lanes.update(fileId, `%braille% ${fileName}`);
 
-				const content = await compile(
-					originalFile,
-					options.verbose
-						? (message) => lanes.update(fileId, `%braille% ${fileName} ${message}`)
-						: undefined,
-				);
+				const content = await Promise.resolve(
+					compile(
+						originalFile,
+						options.verbose
+							? (message) => lanes.update(fileId, `%braille% ${fileName} ${message}`)
+							: undefined,
+					),
+				).catch((error: unknown) => {
+					if (error instanceof Error) {
+						return error;
+					}
+					throw error;
+				});
+
+				if (content instanceof Error) {
+					lanes.update(fileId, `${ERROR_MARK} ${fileName} ${c.red(content.name)}`);
+					return ctx.text(content.message, 500);
+				}
 
 				lanes.update(fileId, `${CHECK_MARK} ${fileName}`);
 
