@@ -81,20 +81,17 @@ describe('getAssetGroup with virtual file system', async () => {
 				input: '/mock/input/dir',
 				output: '/mock/output/dir',
 			},
+			compilers: [],
 			verbose: true,
 		});
 
+		// When compilers array is empty, no files are built
 		expect(vol.toJSON()).toStrictEqual({
 			'/mock/input/dir/contact.pug': 'p Contact page',
 			'/mock/input/dir/index.html': '<html><body>Index</body></html>',
 			'/mock/input/dir/script.js': 'console.log("Hello, world!");',
 			'/mock/input/dir/style.css': 'body { background-color: #fff; }',
 			'/mock/input/dir/subdir/page.html': '<html><body>Page</body></html>',
-			'/mock/output/dir/contact.html': 'p Contact page',
-			'/mock/output/dir/index.html': '<html><body>Index</body></html>',
-			'/mock/output/dir/script.js': 'console.log("Hello, world!");',
-			'/mock/output/dir/style.css': 'body { background-color: #fff; }',
-			'/mock/output/dir/subdir/page.html': '<html><body>Page</body></html>',
 		});
 	}, 10_000);
 
@@ -106,11 +103,23 @@ describe('getAssetGroup with virtual file system', async () => {
 				input: '/mock/input/dir',
 				output: '/mock/output/dir',
 			},
-			compilers: {
-				page: () => () => 'page content',
-				style: () => () => 'style content',
-				script: () => () => 'script content',
-			},
+			compilers: [
+				{
+					files: '**/*.{html,pug}',
+					outputExtension: '.html',
+					compiler: () => () => 'page content',
+				},
+				{
+					files: '**/*.css',
+					outputExtension: '.css',
+					compiler: () => () => 'style content',
+				},
+				{
+					files: '**/*.js',
+					outputExtension: '.js',
+					compiler: () => () => 'script content',
+				},
+			],
 			verbose: true,
 		});
 

@@ -96,11 +96,18 @@ export async function getGlobalData(dir: string, config: Config): Promise<Global
 		}
 	}
 
-	const allPages = await getAssetGroup('page', {
-		inputDir: config.dir.input,
-		outputDir: config.dir.output,
-		extensions: config.extensions,
-	});
+	// Find page compiler entry (outputExtension is .html)
+	const pageCompilerEntry = config.compilers.find(
+		(entry) => entry.outputExtension === '.html',
+	);
+
+	const allPages = pageCompilerEntry
+		? await getAssetGroup({
+				inputDir: config.dir.input,
+				outputDir: config.dir.output,
+				compilerEntry: pageCompilerEntry,
+			})
+		: [];
 
 	const pageList = await Promise.all(
 		allPages.map(async (page) => ({

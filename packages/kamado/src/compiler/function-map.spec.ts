@@ -10,18 +10,26 @@ describe('createCompileFunctionMap', async () => {
 	test('should create a compile function map', async () => {
 		const compileFunctionMap = await createCompileFunctionMap({
 			...config,
-			compilers: {
-				page: () => () => 'content',
-				style: () => () => 'content',
-				script: () => () => 'content',
-				// @ts-ignore
-				foo: () => () => 'content',
-			},
+			compilers: [
+				{
+					files: '**/*.html',
+					outputExtension: '.html',
+					compiler: () => () => 'content',
+				},
+				{
+					files: '**/*.css',
+					outputExtension: '.css',
+					compiler: () => () => 'content',
+				},
+				{
+					files: '**/*.js',
+					outputExtension: '.js',
+					compiler: () => () => 'content',
+				},
+			],
 		});
-		expect(compileFunctionMap.get('page')).toBeDefined();
-		expect(compileFunctionMap.get('style')).toBeDefined();
-		expect(compileFunctionMap.get('script')).toBeDefined();
-		// @ts-ignore
-		expect(compileFunctionMap.get('foo')).toBeDefined();
+		expect(compileFunctionMap.get('.html')).toBeDefined();
+		expect(compileFunctionMap.get('.css')).toBeDefined();
+		expect(compileFunctionMap.get('.js')).toBeDefined();
 	});
 });

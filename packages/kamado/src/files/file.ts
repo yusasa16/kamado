@@ -1,4 +1,4 @@
-import type { CompilableFile, ExtensionOutputTypeMap, OutputFileType } from './types.js';
+import type { CompilableFile } from './types.js';
 
 import path from 'node:path';
 
@@ -11,7 +11,7 @@ import { getFileContent } from './file-content.js';
 interface GetFileOptions {
 	readonly inputDir: string;
 	readonly outputDir: string;
-	readonly extensions: ExtensionOutputTypeMap;
+	readonly outputExtension: string;
 }
 
 /**
@@ -20,34 +20,23 @@ interface GetFileOptions {
  * @param options - Options for getting the file
  * @param options.inputDir - Input directory path
  * @param options.outputDir - Output directory path
- * @param options.extensions - Mapping of extensions to output file types
+ * @param options.outputExtension - Output file extension (e.g., '.html', '.css', '.js')
  * @returns CompilableFile object
- * @throws {Error} if the file type is not supported (not found in extensions mapping)
  * @example
  * ```typescript
  * const file = getFile('./src/pages/index.pug', {
  *   inputDir: './src',
  *   outputDir: './dist',
- *   extensions: { pug: 'page', html: 'page' },
+ *   outputExtension: '.html',
  * });
  * ```
  */
 export function getFile(filePath: string, options: GetFileOptions): CompilableFile {
-	const fileType = path.extname(filePath).toLowerCase().slice(1);
-	const outputFileType: OutputFileType =
-		// @ts-ignore
-		options.extensions[fileType] ?? '#error';
-
-	if (outputFileType === '#error') {
-		throw new Error(`Unsupported file type: ${fileType}`);
-	}
-
-	const outputExtension = detectOutputExtension(outputFileType);
 	const pathInfo = computeOutputPath(
 		filePath,
 		options.inputDir,
 		options.outputDir,
-		outputExtension,
+		options.outputExtension,
 	);
 
 	const filePathStem = '/' + pathInfo.rootRelPath.replaceAll(path.sep, '/');
@@ -65,7 +54,6 @@ export function getFile(filePath: string, options: GetFileOptions): CompilableFi
 		fileSlug: pathInfo.name === 'index' ? path.basename(dir) : pathInfo.name,
 		filePathStem,
 		extension: pathInfo.extension,
-		outputFileType,
 		date: new Date(),
 		url,
 		/**
@@ -92,26 +80,4 @@ export function getFile(filePath: string, options: GetFileOptions): CompilableFi
 			};
 		},
 	};
-}
-
-/**
- * Detects output file extension based on output file type
- * @param outputFileType - Output file type
- * @returns File extension string (e.g., '.html', '.css', '.js', or empty string)
- */
-function detectOutputExtension(outputFileType: OutputFileType) {
-	switch (outputFileType) {
-		case 'page': {
-			return '.html';
-		}
-		case 'style': {
-			return '.css';
-		}
-		case 'script': {
-			return '.js';
-		}
-		default: {
-			return '';
-		}
-	}
 }

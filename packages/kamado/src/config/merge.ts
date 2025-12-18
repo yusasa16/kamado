@@ -5,8 +5,6 @@ import path from 'node:path';
 
 import { toAbsolutePath } from '../path/absolute-path.js';
 
-import { DEFAULT_EXTENSIONS } from './defaults.js';
-
 /**
  *
  * @param config
@@ -35,13 +33,7 @@ export async function mergeConfig(
 			host: 'localhost',
 			...config.devServer,
 		},
-		compilers: {
-			...config.compilers,
-		},
-		extensions: {
-			...DEFAULT_EXTENSIONS,
-			...config.extensions,
-		},
+		compilers: config.compilers ?? [],
 		onBeforeBuild: config.onBeforeBuild,
 		onAfterBuild: config.onAfterBuild,
 	};

@@ -57,7 +57,17 @@ describe('getAssetGroup with virtual file system', async () => {
 	});
 
 	test('use no compiler', async () => {
-		const globalData = await getGlobalData('/mock/input/data', config);
+		const configWithCompilers = {
+			...config,
+			compilers: [
+				{
+					files: '**/*.{html,pug}',
+					outputExtension: '.html',
+					compiler: () => () => '',
+				},
+			],
+		};
+		const globalData = await getGlobalData('/mock/input/data', configWithCompilers);
 
 		expect(globalData.data1.name).toBe('John');
 		expect(globalData.data2.name).toBe('John');
@@ -76,7 +86,6 @@ describe('getAssetGroup with virtual file system', async () => {
 				filePathStem: '/contact',
 				fileSlug: 'contact',
 				inputPath: '/mock/input/dir/contact.pug',
-				outputFileType: 'page',
 				outputPath: '/mock/output/contact.html',
 				url: '/contact.html',
 			},
@@ -85,7 +94,6 @@ describe('getAssetGroup with virtual file system', async () => {
 				filePathStem: '/index',
 				fileSlug: 'dir',
 				inputPath: '/mock/input/dir/index.html',
-				outputFileType: 'page',
 				outputPath: '/mock/output/index.html',
 				url: '/',
 			},
@@ -94,7 +102,6 @@ describe('getAssetGroup with virtual file system', async () => {
 				filePathStem: '/subdir/page',
 				fileSlug: 'page',
 				inputPath: '/mock/input/dir/subdir/page.html',
-				outputFileType: 'page',
 				outputPath: '/mock/output/subdir/page.html',
 				url: '/subdir/page.html',
 			},

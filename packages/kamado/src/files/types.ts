@@ -1,69 +1,4 @@
 /**
- * Mapping of extensions to output file types
- */
-export interface ExtensionOutputTypeMap {
-	/**
-	 * Output type for HTML files
-	 */
-	readonly html: OutputFileType;
-	/**
-	 * Output type for Pug files
-	 */
-	readonly pug: OutputFileType;
-	/**
-	 * Output type for CSS files
-	 */
-	readonly css: OutputFileType;
-	/**
-	 * Output type for SCSS files
-	 */
-	readonly scss: OutputFileType;
-	/**
-	 * Output type for SASS files
-	 */
-	readonly sass: OutputFileType;
-	/**
-	 * Output type for JavaScript files
-	 */
-	readonly js: OutputFileType;
-	/**
-	 * Output type for ES Module files
-	 */
-	readonly mjs: OutputFileType;
-	/**
-	 * Output type for CommonJS files
-	 */
-	readonly cjs: OutputFileType;
-	/**
-	 * Output type for JSX files
-	 */
-	readonly jsx: OutputFileType;
-	/**
-	 * Output type for TypeScript files
-	 */
-	readonly ts: OutputFileType;
-	/**
-	 * Output type for TSX files
-	 */
-	readonly tsx: OutputFileType;
-}
-
-/**
- * Type for supported extensions
- */
-export type Extension = keyof ExtensionOutputTypeMap;
-
-/**
- * Output file type
- * - 'page': Page file (HTML)
- * - 'style': Style file (CSS)
- * - 'script': Script file (JavaScript)
- * - '#error': Error (unsupported file type)
- * - '#ignore': Ignored file
- */
-export type OutputFileType = 'page' | 'style' | 'script' | '#error' | '#ignore';
-
-/**
  * File object interface
  */
 export interface FileObject {
@@ -129,10 +64,6 @@ export interface CompilableFile extends FileObject {
 	 * File extension (including dot)
 	 */
 	readonly extension: string;
-	/**
-	 * Output file type
-	 */
-	readonly outputFileType: OutputFileType;
 	/**
 	 * File date/time
 	 */

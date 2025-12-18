@@ -87,13 +87,10 @@ export const config: UserConfig = {
 		open: true,
 		port: 8000,
 	},
-	extensions: {
-		// Ignore specific extensions by specifying '#ignore'
-		scss: '#ignore',
-		sass: '#ignore',
-	},
-	compilers: {
-		page: pageCompiler({
+	compilers: [
+		pageCompiler({
+			files: '**/*.{html,pug}',
+			outputExtension: '.html',
 			globalData: {
 				dir: path.resolve(import.meta.dirname, '__assets', '_libs', 'data'),
 			},
@@ -104,18 +101,23 @@ export const config: UserConfig = {
 				// DOM manipulation or custom processing here
 			},
 		}),
-		style: styleCompiler({
+		styleCompiler({
+			files: '**/*.{css,scss,sass}',
+			ignore: '**/*.{scss,sass}',
+			outputExtension: '.css',
 			alias: {
 				'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
 			},
 		}),
-		script: scriptCompiler({
+		scriptCompiler({
+			files: '**/*.{js,ts,jsx,tsx,mjs,cjs}',
+			outputExtension: '.js',
 			minifier: true,
 			alias: {
 				'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
 			},
 		}),
-	},
+	],
 	async onBeforeBuild(config) {
 		// Process before build
 	},
@@ -141,20 +143,22 @@ export default config;
 - `devServer.host`: Server host name (default: `localhost`)
 - `devServer.open`: Whether to automatically open the browser on startup (default: `false`)
 
-#### Extension Mapping
-
-Map file extensions to output types in `extensions`:
-
-- `page`: HTML pages (`.html`, `.pug`, etc.)
-  Note: To use `.pug` files, you need to install `@kamado-io/pug-compiler` and configure `compileHooks`. See [@kamado-io/pug-compiler README](../@kamado-io/pug-compiler/README.md) for details.
-- `style`: Stylesheets (`.css`, `.scss`, `.sass`, etc.)
-- `script`: Scripts (`.js`, `.ts`, `.jsx`, `.tsx`, etc.)
-- `#ignore`: Extensions to ignore
-
 #### Compiler Settings
+
+The `compilers` array defines how files are compiled. Each entry is a compiler function call that returns a compiler with metadata. The compiler function accepts optional options including:
+
+- `files` (optional): Glob pattern for files to compile. Patterns are resolved relative to `dir.input`. Default values are provided by each compiler (see below).
+- `ignore` (optional): Glob pattern for files to exclude from compilation. Patterns are resolved relative to `dir.input`. For example, `'**/*.scss'` will ignore all `.scss` files in the input directory and subdirectories.
+- `outputExtension` (optional): Output file extension (e.g., `.html`, `.css`, `.js`, `.php`). Default values are provided by each compiler (see below).
+- Other compiler-specific options (see each compiler's documentation below)
+
+The order of entries in the array determines the processing order.
 
 ##### pageCompiler
 
+- `files` (optional): Glob pattern for files to compile. Patterns are resolved relative to `dir.input` (default: `'**/*.html'`)
+- `ignore` (optional): Glob pattern for files to exclude from compilation. Patterns are resolved relative to `dir.input`. For example, `'**/*.tmp'` will ignore all `.tmp` files.
+- `outputExtension` (optional): Output file extension (default: `'.html'`)
 - `globalData.dir`: Global data file directory
 - `globalData.data`: Additional global data
 - `layouts.dir`: Layout file directory
@@ -164,14 +168,62 @@ Map file extensions to output types in `extensions`:
 
 **Note**: `page-compiler` is a generic container compiler and does not compile Pug templates by default. To use Pug templates, install `@kamado-io/pug-compiler` and configure `compileHooks`. See [@kamado-io/pug-compiler README](../@kamado-io/pug-compiler/README.md) for details.
 
+**Example**: To compile `.pug` files to `.html`:
+
+```ts
+pageCompiler({
+	files: '**/*.pug',
+	outputExtension: '.html',
+	compileHooks: {
+		main: {
+			compiler: compilePug(),
+		},
+	},
+});
+```
+
 ##### styleCompiler
 
+- `files` (optional): Glob pattern for files to compile. Patterns are resolved relative to `dir.input` (default: `'**/*.css'`)
+- `ignore` (optional): Glob pattern for files to exclude from compilation. Patterns are resolved relative to `dir.input`. For example, `'**/*.{scss,sass}'` will ignore all `.scss` and `.sass` files.
+- `outputExtension` (optional): Output file extension (default: `'.css'`)
 - `alias`: Path alias map (used in PostCSS `@import`)
+- `banner`: Banner configuration (can specify CreateBanner function or string)
+
+**Example**: To compile `.scss` files to `.css` while ignoring source files:
+
+```ts
+styleCompiler({
+	files: '**/*.{css,scss,sass}',
+	ignore: '**/*.{scss,sass}',
+	outputExtension: '.css',
+	alias: {
+		'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
+	},
+});
+```
 
 ##### scriptCompiler
 
+- `files` (optional): Glob pattern for files to compile. Patterns are resolved relative to `dir.input` (default: `'**/*.{js,ts,jsx,tsx,mjs,cjs}'`)
+- `ignore` (optional): Glob pattern for files to exclude from compilation. Patterns are resolved relative to `dir.input`. For example, `'**/*.test.ts'` will ignore all test files.
+- `outputExtension` (optional): Output file extension (default: `'.js'`)
 - `alias`: Path alias map (esbuild alias)
 - `minifier`: Whether to enable minification
+- `banner`: Banner configuration (can specify CreateBanner function or string)
+
+**Example**: To compile TypeScript files to JavaScript:
+
+```ts
+scriptCompiler({
+	files: '**/*.{js,ts,jsx,tsx}',
+	outputExtension: '.js',
+	minifier: true,
+	alias: {
+		'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
+	},
+});
+```
 
 #### Hook Functions
 

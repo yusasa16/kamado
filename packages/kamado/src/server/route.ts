@@ -97,7 +97,8 @@ export async function setRoute(app: Hono, config: Config, options: RouteOptions 
 
 		const originalFile = compilableFileMap.get(refLocalFilePath);
 		if (originalFile) {
-			const compile = compileFunctionMap.get(originalFile.outputFileType);
+			const outputExtension = path.extname(originalFile.outputPath);
+			const compile = compileFunctionMap.get(outputExtension);
 
 			if (compile) {
 				const fileName = f(originalFile.inputPath);

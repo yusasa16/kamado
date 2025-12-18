@@ -87,36 +87,37 @@ export const config: UserConfig = {
 		open: true,
 		port: 8000,
 	},
-	extensions: {
-		// 特定の拡張子を無視する場合は '#ignore' を指定
-		scss: '#ignore',
-		sass: '#ignore',
-	},
-	compilers: {
-		page: pageCompiler({
+	compilers: [
+		pageCompiler({
+			files: '**/*.{html,pug}',
+			outputExtension: '.html',
 			globalData: {
 				dir: path.resolve(import.meta.dirname, '__assets', '_libs', 'data'),
 			},
 			layouts: {
 				dir: path.resolve(import.meta.dirname, '__assets', '_libs', 'layouts'),
 			},
-			pathAlias: path.resolve(import.meta.dirname, '__assets', '_libs'),
 			async afterSerialize(elements) {
 				// DOM操作やカスタム処理をここに記述
 			},
 		}),
-		style: styleCompiler({
+		styleCompiler({
+			files: '**/*.{css,scss,sass}',
+			ignore: '**/*.{scss,sass}',
+			outputExtension: '.css',
 			alias: {
 				'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
 			},
 		}),
-		script: scriptCompiler({
+		scriptCompiler({
+			files: '**/*.{js,ts,jsx,tsx,mjs,cjs}',
+			outputExtension: '.js',
 			minifier: true,
 			alias: {
 				'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
 			},
 		}),
-	},
+	],
 	async onBeforeBuild(config) {
 		// ビルド前の処理
 	},
@@ -142,34 +143,87 @@ export default config;
 - `devServer.host`: サーバーのホスト名（デフォルト: `localhost`）
 - `devServer.open`: 起動時にブラウザを自動で開くか（デフォルト: `false`）
 
-#### 拡張子マッピング
-
-`extensions`でファイル拡張子と出力タイプをマッピングします：
-
-- `page`: HTMLページ（`.html`, `.pug`など）
-- `style`: スタイルシート（`.css`, `.scss`, `.sass`など）
-- `script`: スクリプト（`.js`, `.ts`, `.jsx`, `.tsx`など）
-- `#ignore`: 無視する拡張子
-
 #### コンパイラ設定
+
+`compilers`配列でファイルのコンパイル方法を定義します。各エントリはコンパイラ関数の呼び出しで、メタデータ付きのコンパイラを返します。コンパイラ関数は以下のオプションを受け取ります：
+
+- `files`（オプション）: コンパイルするファイルのglobパターン。パターンは`dir.input`を基準に解決されます。デフォルト値は各コンパイラで提供されます（下記参照）。
+- `ignore`（オプション）: コンパイルから除外するファイルのglobパターン。パターンは`dir.input`を基準に解決されます。例えば、`'**/*.scss'`と指定すると、入力ディレクトリとそのサブディレクトリ内のすべての`.scss`ファイルが無視されます。
+- `outputExtension`（オプション）: 出力ファイルの拡張子（例: `.html`, `.css`, `.js`, `.php`）。デフォルト値は各コンパイラで提供されます（下記参照）。
+- その他のコンパイラ固有のオプション（各コンパイラのドキュメントを参照）。
+
+配列の順序が処理順序を決定します。
 
 ##### pageCompiler
 
+- `files`（オプション）: コンパイルするファイルのglobパターン。パターンは`dir.input`を基準に解決されます（デフォルト: `'**/*.html'`）
+- `ignore`（オプション）: コンパイルから除外するファイルのglobパターン。パターンは`dir.input`を基準に解決されます。例えば、`'**/*.tmp'`と指定すると、すべての`.tmp`ファイルが無視されます
+- `outputExtension`（オプション）: 出力ファイルの拡張子（デフォルト: `'.html'`）
 - `globalData.dir`: グローバルデータファイルのディレクトリ
 - `globalData.data`: 追加のグローバルデータ
 - `layouts.dir`: レイアウトファイルのディレクトリ
-- `pathAlias`: テンプレートエンジン向けのパスエイリアス
+- `compileHooks`: コンパイルプロセスをカスタマイズするコンパイルフック（Pugテンプレートを使用する場合は必須）
 - `host`: JSDOMのurlオプションに使用するホストURL（未指定の場合はpackage.jsonの本番ドメインを使用）
 - `afterSerialize`: DOMシリアライズ後のフック
 
+**注意**: `page-compiler`は汎用コンテナコンパイラであり、デフォルトではPugテンプレートをコンパイルしません。Pugテンプレートを使用するには、`@kamado-io/pug-compiler`をインストールし、`compileHooks`を設定してください。詳細は[@kamado-io/pug-compiler README](../@kamado-io/pug-compiler/README.md)を参照してください。
+
+**例**: `.pug`ファイルを`.html`にコンパイルする場合：
+
+```ts
+pageCompiler({
+	files: '**/*.pug',
+	outputExtension: '.html',
+	compileHooks: {
+		main: {
+			compiler: compilePug(),
+		},
+	},
+});
+```
+
 ##### styleCompiler
 
+- `files`（オプション）: コンパイルするファイルのglobパターン。パターンは`dir.input`を基準に解決されます（デフォルト: `'**/*.css'`）
+- `ignore`（オプション）: コンパイルから除外するファイルのglobパターン。パターンは`dir.input`を基準に解決されます。例えば、`'**/*.{scss,sass}'`と指定すると、すべての`.scss`と`.sass`ファイルが無視されます
+- `outputExtension`（オプション）: 出力ファイルの拡張子（デフォルト: `'.css'`）
 - `alias`: パスエイリアスのマップ（PostCSSの`@import`で使用）
+- `banner`: バナー設定（CreateBanner関数または文字列を指定可能）
+
+**例**: `.scss`ファイルを`.css`にコンパイルし、ソースファイルを無視する場合：
+
+```ts
+styleCompiler({
+	files: '**/*.{css,scss,sass}',
+	ignore: '**/*.{scss,sass}',
+	outputExtension: '.css',
+	alias: {
+		'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
+	},
+});
+```
 
 ##### scriptCompiler
 
-- `alias`: パスエイリアスのマップ（esbuildのalias）
+- `files`（オプション）: コンパイルするファイルのglobパターン。パターンは`dir.input`を基準に解決されます（デフォルト: `'**/*.{js,ts,jsx,tsx,mjs,cjs}'`）
+- `ignore`（オプション）: コンパイルから除外するファイルのglobパターン。パターンは`dir.input`を基準に解決されます。例えば、`'**/*.test.ts'`と指定すると、すべてのテストファイルが無視されます
+- `outputExtension`（オプション）: 出力ファイルの拡張子（デフォルト: `'.js'`）
+- `alias`: パスエイリアスのマップ（esbuildのエイリアス）
 - `minifier`: ミニファイを有効にするか
+- `banner`: バナー設定（CreateBanner関数または文字列を指定可能）
+
+**例**: TypeScriptファイルをJavaScriptにコンパイルする場合：
+
+```ts
+scriptCompiler({
+	files: '**/*.{js,ts,jsx,tsx}',
+	outputExtension: '.js',
+	minifier: true,
+	alias: {
+		'@': path.resolve(import.meta.dirname, '__assets', '_libs'),
+	},
+});
+```
 
 #### フック関数
 

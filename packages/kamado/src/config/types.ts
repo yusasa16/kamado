@@ -1,5 +1,4 @@
-import type { Compiler } from '../compiler/index.js';
-import type { ExtensionOutputTypeMap } from '../files/types.js';
+import type { CompilerWithMetadata } from '../compiler/index.js';
 
 /**
  * Application configuration
@@ -18,26 +17,9 @@ export interface Config {
 	 */
 	readonly devServer: DevServerConfig;
 	/**
-	 * Mapping of extensions to output file types
+	 * Compiler configuration (array to guarantee processing order)
 	 */
-	readonly extensions: ExtensionOutputTypeMap;
-	/**
-	 * Compiler configuration
-	 */
-	readonly compilers: {
-		/**
-		 * Page compiler
-		 */
-		readonly page?: Compiler;
-		/**
-		 * Style compiler
-		 */
-		readonly style?: Compiler;
-		/**
-		 * Script compiler
-		 */
-		readonly script?: Compiler;
-	};
+	readonly compilers: readonly CompilerWithMetadata[];
 	/**
 	 * Hook function called before build
 	 * @param config - Configuration object
@@ -55,10 +37,10 @@ export interface Config {
  * Partial version of Config
  */
 export type UserConfig = Partial<
-	Omit<Config, 'pkg' | 'dir' | 'devServer' | 'extensions'> & {
+	Omit<Config, 'pkg' | 'dir' | 'devServer'> & {
 		readonly dir: Partial<DirectoryConfig>;
 		readonly devServer: Partial<DevServerConfig>;
-		readonly extensions: Partial<ExtensionOutputTypeMap>;
+		readonly compilers?: readonly CompilerWithMetadata[];
 	}
 >;
 

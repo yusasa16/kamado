@@ -53,28 +53,19 @@ export async function build(buildConfig: UserConfig & BuildConfig) {
 		console.log('Build started...');
 	}
 
-	const styleSheetFiles = await getAssetGroup('style', {
-		inputDir: config.dir.input,
-		outputDir: config.dir.output,
-		extensions: config.extensions,
-		glob: buildConfig.targetGlob,
-	});
-
-	const jsFiles = await getAssetGroup('script', {
-		inputDir: config.dir.input,
-		outputDir: config.dir.output,
-		extensions: config.extensions,
-		glob: buildConfig.targetGlob,
-	});
-
-	const pages = await getAssetGroup('page', {
-		inputDir: config.dir.input,
-		outputDir: config.dir.output,
-		extensions: config.extensions,
-		glob: buildConfig.targetGlob,
-	});
-
 	const compileFunctionMap = await createCompileFunctionMap(config);
+
+	const fileArrays = await Promise.all(
+		config.compilers.map((compilerEntry) =>
+			getAssetGroup({
+				inputDir: config.dir.input,
+				outputDir: config.dir.output,
+				compilerEntry,
+				glob: buildConfig.targetGlob,
+			}),
+		),
+	);
+	const allFiles = fileArrays.flat();
 
 	const f = filePathColorizer({
 		rootDir: config.dir.input,
@@ -83,7 +74,7 @@ export async function build(buildConfig: UserConfig & BuildConfig) {
 	const CHECK_MARK = c.green('✔');
 
 	await deal<CompilableFile>(
-		[...pages, ...styleSheetFiles, ...jsFiles],
+		allFiles,
 		(file, log, _, setLineHeader) => {
 			const cPath = f(file.inputPath);
 			setLineHeader(`${c.cyan('%braille%')} ${cPath} `);
@@ -91,7 +82,9 @@ export async function build(buildConfig: UserConfig & BuildConfig) {
 			return async () => {
 				let content: string | ArrayBuffer;
 
-				const compile = compileFunctionMap.get(file.outputFileType);
+				// Find compiler by output extension
+				const outputExtension = path.extname(file.outputPath);
+				const compile = compileFunctionMap.get(outputExtension);
 				if (compile) {
 					content = await compile(file, log);
 				} else {

@@ -1,8 +1,6 @@
 import { vol, fs as memfs } from 'memfs';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { mergeConfig } from '../config/merge.js';
-
 import { getAssetGroup } from './assets.js';
 
 vi.mock('fast-glob', async () => {
@@ -28,12 +26,7 @@ vi.mock('node:fs/promises', () => {
 	};
 });
 
-describe('getAssetGroup with virtual file system', async () => {
-	const config = await mergeConfig(
-		// @ts-ignore
-		{ pkg: { name: 'mock' } },
-	);
-
+describe('getAssetGroup with virtual file system', () => {
 	beforeEach(() => {
 		vol.fromJSON({
 			'/mock/input/dir/index.html': '<html><body>Index</body></html>',
@@ -50,11 +43,13 @@ describe('getAssetGroup with virtual file system', async () => {
 	});
 
 	test('should return page files', async () => {
-		const result = await getAssetGroup('page', {
+		const result = await getAssetGroup({
 			inputDir: '/mock/input/dir',
 			outputDir: '/mock/output/dir',
-			extensions: {
-				...config.extensions,
+			compilerEntry: {
+				files: '**/*.{html,pug}',
+				outputExtension: '.html',
+				compiler: () => () => '',
 			},
 		});
 
@@ -70,6 +65,5 @@ describe('getAssetGroup with virtual file system', async () => {
 		expect(result[0]).toHaveProperty('fileSlug', 'about');
 		expect(result[0]).toHaveProperty('filePathStem', '/about');
 		expect(result[0]).toHaveProperty('extension', '.html');
-		expect(result[0]).toHaveProperty('outputFileType', 'page');
 	});
 });
