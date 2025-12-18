@@ -106,15 +106,15 @@ function createCompilerWithExtensionCheck(
  * import { createCompileHooks } from '@kamado-io/pug-compiler';
  *
  * export const config = {
- *   compilers: {
- *     page: pageCompiler({
+ *   compilers: [
+ *     pageCompiler({
  *       compileHooks: createCompileHooks({
  *         pathAlias: './src',
  *         doctype: 'html',
  *         pretty: true,
  *       }),
  *     }),
- *   },
+ *   ],
  * };
  * ```
  */

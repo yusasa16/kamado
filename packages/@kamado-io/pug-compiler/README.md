@@ -79,8 +79,8 @@ const hooks = createCompileHooks({
 })();
 
 export const config = {
-	compilers: {
-		page: pageCompiler({
+	compilers: [
+		pageCompiler({
 			layouts: { dir: './layouts' },
 			globalData: { dir: './data' },
 			compileHooks: {
@@ -92,7 +92,7 @@ export const config = {
 				},
 			},
 		}),
-	},
+	],
 };
 ```
 
@@ -111,13 +111,13 @@ const hooksFactory = createCompileHooks({
 });
 
 export const config = {
-	compilers: {
-		page: pageCompiler({
+	compilers: [
+		pageCompiler({
 			layouts: { dir: './layouts' },
 			globalData: { dir: './data' },
 			compileHooks: () => hooksFactory(),
 		}),
-	},
+	],
 };
 ```
 
@@ -128,8 +128,8 @@ import { pageCompiler } from '@kamado-io/page-compiler';
 import { createCompileHooks } from '@kamado-io/pug-compiler';
 
 export const config = {
-	compilers: {
-		page: pageCompiler({
+	compilers: [
+		pageCompiler({
 			layouts: { dir: './layouts' },
 			globalData: { dir: './data' },
 			compileHooks: () => {
@@ -141,7 +141,7 @@ export const config = {
 				return hooks();
 			},
 		}),
-	},
+	],
 };
 ```
 
@@ -152,8 +152,8 @@ import { pageCompiler } from '@kamado-io/page-compiler';
 import { createCompileHooks } from '@kamado-io/pug-compiler';
 
 export const config = {
-	compilers: {
-		page: pageCompiler({
+	compilers: [
+		pageCompiler({
 			layouts: { dir: './layouts' },
 			globalData: { dir: './data' },
 			compileHooks: createCompileHooks({
@@ -162,7 +162,7 @@ export const config = {
 				pretty: true,
 			}),
 		}),
-	},
+	],
 };
 ```
 
