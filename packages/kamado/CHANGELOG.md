@@ -3,6 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.0](https://github.com/d-zero-dev/kamodo/compare/v0.1.0-alpha.7...v1.0.0-alpha.0) (2025-12-21)
+
+- feat(kamado)!: add flexible extension config and guaranteed compilation order ([e16a8c7](https://github.com/d-zero-dev/kamodo/commit/e16a8c744b0a06bbbe5d16399c38490a968432fa))
+
+### BREAKING CHANGES
+
+- createCompiler API has been completely redesigned
+
+The createCompiler function now requires a factory function that
+
+returns CompilerFactoryResult with defaultFiles and
+
+defaultOutputExtension. It returns CompilerWithMetadata instead
+
+of CompilerPlugin.
+
+Improvements:
+
+- Added flexible extension configuration for both input and
+
+  output files
+
+- Compilation order is now guaranteed
+
+- Removed unused files: extension.ts, wildcard-glob.ts,
+
+  files/types.ts, config/defaults.ts
+
+Refactored data and file processing logic for better
+
+maintainability. Updated documentation to reflect the new API.
+
 # [0.1.0-alpha.7](https://github.com/d-zero-dev/kamodo/compare/v0.1.0-alpha.6...v0.1.0-alpha.7) (2025-12-18)
 
 ### Bug Fixes

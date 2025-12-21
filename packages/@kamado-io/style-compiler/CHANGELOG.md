@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.0](https://github.com/d-zero-dev/kamado/compare/v0.1.0-alpha.7...v1.0.0-alpha.0) (2025-12-21)
+
+### Bug Fixes
+
+- **style-compiler:** pass cache parameter to file.get() ([39c038b](https://github.com/d-zero-dev/kamado/commit/39c038b78ce5b3b2bd82e73d393dfa1b678bffcf))
+
+### Features
+
+- **style-compiler:** adapt to new compiler API with metadata ([4de9112](https://github.com/d-zero-dev/kamado/commit/4de91124a90b7493de0c3f3234dba6b85e40ea85))
+
 # [0.1.0-alpha.7](https://github.com/d-zero-dev/kamado/compare/v0.1.0-alpha.6...v0.1.0-alpha.7) (2025-12-18)
 
 **Note:** Version bump only for package @kamado-io/style-compiler
