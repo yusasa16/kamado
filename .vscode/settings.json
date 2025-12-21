@@ -10,7 +10,7 @@
 	"stylelint.validate": ["css"],
 	"files.associations": {
 		".stylelintrc": "json",
-		".markuplintrc": "json",
+		".markuplintrc": "json"
 	},
 	// Auto format
 	"editor.formatOnSave": true,
