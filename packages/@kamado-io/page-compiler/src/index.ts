@@ -592,8 +592,8 @@ function getLayout(filePath: string): Record<string, FileObject> {
 	return {
 		[name]: {
 			inputPath: filePath,
-			async get() {
-				const content = await getFileContent(filePath);
+			async get(cache = true) {
+				const content = await getFileContent(filePath, cache);
 				return {
 					metaData: {},
 					content,
