@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.1](https://github.com/d-zero-dev/kamado/compare/v0.1.0-alpha.7...v1.0.0-alpha.1) (2025-12-21)
+
+### Bug Fixes
+
+- **page-compiler:** pass cache parameter to layout.get() ([9e85f62](https://github.com/d-zero-dev/kamado/commit/9e85f6230787c70a5c84c730194f868b20248748))
+
+### Features
+
+- **page-compiler:** adapt to new compiler API with metadata ([94bafe6](https://github.com/d-zero-dev/kamado/commit/94bafe668e46becedebdbb9a3cc6b1cdf73674ec))
+- **page-compiler:** add cache parameter to getLayout get method ([8746095](https://github.com/d-zero-dev/kamado/commit/8746095416b33cff0b56915fbdf142bce26e55ec))
+
 # [1.0.0-alpha.0](https://github.com/d-zero-dev/kamado/compare/v0.1.0-alpha.7...v1.0.0-alpha.0) (2025-12-21)
 
 ### Bug Fixes

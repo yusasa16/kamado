@@ -1,6 +1,6 @@
 {
 	"name": "@kamado-io/page-compiler",
-	"version": "1.0.0-alpha.0",
+	"version": "1.0.0-alpha.1",
 	"description": "Page compiler for Kamado",
 	"author": "D-ZERO Co., Ltd.",
 	"license": "MIT",
@@ -31,7 +31,7 @@
 		"html-minifier-terser": "7.2.0",
 		"image-size": "2.0.2",
 		"jsdom": "27.3.0",
-		"kamado": "1.0.0-alpha.0",
+		"kamado": "1.0.0-alpha.1",
 		"prettier": "3.7.4"
 	},
 	"devDependencies": {

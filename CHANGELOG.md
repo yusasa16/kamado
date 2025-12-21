@@ -3,6 +3,50 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0-alpha.1](https://github.com/d-zero-dev/kamado/compare/v0.1.0-alpha.7...v1.0.0-alpha.1) (2025-12-21)
+
+### Bug Fixes
+
+- **page-compiler:** pass cache parameter to layout.get() ([9e85f62](https://github.com/d-zero-dev/kamado/commit/9e85f6230787c70a5c84c730194f868b20248748))
+- **style-compiler:** pass cache parameter to file.get() ([39c038b](https://github.com/d-zero-dev/kamado/commit/39c038b78ce5b3b2bd82e73d393dfa1b678bffcf))
+
+- feat(kamado)!: add flexible extension config and guaranteed compilation order ([e16a8c7](https://github.com/d-zero-dev/kamado/commit/e16a8c744b0a06bbbe5d16399c38490a968432fa))
+
+### Features
+
+- **page-compiler:** adapt to new compiler API with metadata ([94bafe6](https://github.com/d-zero-dev/kamado/commit/94bafe668e46becedebdbb9a3cc6b1cdf73674ec))
+- **page-compiler:** add cache parameter to getLayout get method ([8746095](https://github.com/d-zero-dev/kamado/commit/8746095416b33cff0b56915fbdf142bce26e55ec))
+- **script-compiler:** adapt to new compiler API with metadata ([04647b9](https://github.com/d-zero-dev/kamado/commit/04647b9d152e0958bdb6380b852a5f1bd4ac5c6e))
+- **style-compiler:** adapt to new compiler API with metadata ([4de9112](https://github.com/d-zero-dev/kamado/commit/4de91124a90b7493de0c3f3234dba6b85e40ea85))
+
+### BREAKING CHANGES
+
+- createCompiler API has been completely redesigned
+
+The createCompiler function now requires a factory function that
+
+returns CompilerFactoryResult with defaultFiles and
+
+defaultOutputExtension. It returns CompilerWithMetadata instead
+
+of CompilerPlugin.
+
+Improvements:
+
+- Added flexible extension configuration for both input and
+
+  output files
+
+- Compilation order is now guaranteed
+
+- Removed unused files: extension.ts, wildcard-glob.ts,
+
+  files/types.ts, config/defaults.ts
+
+Refactored data and file processing logic for better
+
+maintainability. Updated documentation to reflect the new API.
+
 # [1.0.0-alpha.0](https://github.com/d-zero-dev/kamado/compare/v0.1.0-alpha.7...v1.0.0-alpha.0) (2025-12-21)
 
 ### Bug Fixes
