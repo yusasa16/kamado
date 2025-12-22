@@ -8,6 +8,8 @@
 
 ## Project Overview
 
+- 🏗️ [Kamado Architecture](./ARCHITECTURE.md) | [Internal Architecture (JA)](./ARCHITECTURE.ja.md)
+
 Kamado is a static site build tool similar to 11ty, but aims for a simpler design. It is a tool for those who stick to the legacy, old-school ways of building.
 
 **The biggest feature of Kamado is that it requires absolutely no runtime.** No client-side runtime (hydration) is needed. Because it generates pure static HTML, it achieves persistence and robustness. It generates HTML that will work just the same 10 years, or even 20 years from now.
