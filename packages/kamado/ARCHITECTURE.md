@@ -108,5 +108,4 @@ Users can insert custom logic before and after the build via `kamado.config.ts`.
 - **[@d-zero/dealer](https://www.npmjs.com/package/@d-zero/dealer)**: Controls parallel processing and progress display.
 - **[@d-zero/roar](https://www.npmjs.com/package/@d-zero/roar)**: CLI command and option parsing.
 - **[Hono](https://hono.dev/)**: The foundation for the high-performance dev server.
-- **[meow](https://github.com/sindresorhus/meow)**: CLI framework.
 - **[cosmiconfig](https://github.com/cosmiconfig/cosmiconfig)**: Configuration file discovery.

@@ -108,5 +108,4 @@ export interface CompileFunction {
 - **[@d-zero/dealer](https://www.npmjs.com/package/@d-zero/dealer)**: 全体の並列処理とプログレス表示を制御。
 - **[@d-zero/roar](https://www.npmjs.com/package/@d-zero/roar)**: CLI のコマンド・オプション解析。
 - **[Hono](https://hono.dev/)**: 高速な開発サーバーのベース。
-- **[meow](https://github.com/sindresorhus/meow)**: CLI の基盤。
 - **[cosmiconfig](https://github.com/cosmiconfig/cosmiconfig)**: 設定ファイルの探索。
