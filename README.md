@@ -17,6 +17,7 @@ For detailed usage and configuration, please refer to the documentation below:
 
 - 📖 [Kamado Package README (English)](./packages/kamado/README.md)
 - 📖 [Kamado Package README (日本語)](./packages/kamado/README.ja.md)
+- 🏗️ [Kamado Architecture](./packages/kamado/ARCHITECTURE.md) | [内部アーキテクチャ](./packages/kamado/ARCHITECTURE.ja.md)
 
 ## Monorepo Structure
 
