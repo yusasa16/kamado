@@ -2122,7 +2122,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kamado-io/page-compiler@workspace:packages/@kamado-io/page-compiler":
+"@kamado-io/page-compiler@npm:1.0.0-alpha.1, @kamado-io/page-compiler@workspace:packages/@kamado-io/page-compiler":
   version: 0.0.0-use.local
   resolution: "@kamado-io/page-compiler@workspace:packages/@kamado-io/page-compiler"
   dependencies:
@@ -2145,11 +2145,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@kamado-io/pug-compiler@workspace:packages/@kamado-io/pug-compiler"
   dependencies:
+    "@kamado-io/page-compiler": "npm:1.0.0-alpha.1"
     "@types/pug": "npm:2.0.10"
     pug: "npm:3.0.3"
     typescript: "npm:5.9.3"
   peerDependencies:
-    "@kamado-io/page-compiler": 0.1.0-alpha.5
+    "@kamado-io/page-compiler": 1.0.0-alpha.1
   languageName: unknown
   linkType: soft
 

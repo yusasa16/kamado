@@ -27,9 +27,10 @@
 		"pug": "3.0.3"
 	},
 	"peerDependencies": {
-		"@kamado-io/page-compiler": "0.1.0-alpha.5"
+		"@kamado-io/page-compiler": "1.0.0-alpha.1"
 	},
 	"devDependencies": {
+		"@kamado-io/page-compiler": "1.0.0-alpha.1",
 		"@types/pug": "2.0.10",
 		"typescript": "5.9.3"
 	}
