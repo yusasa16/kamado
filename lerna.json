@@ -1,11 +1,14 @@
 {
-	"lerna": "8.1.2",
-	"version": "1.0.0-alpha.1",
-	"npmClient": "yarn",
-	"packages": ["packages/*", "packages/@kamado-io/*"],
-	"command": {
-		"version": {
-			"message": "chore(release): publish %s"
-		}
-	}
+  "lerna": "8.1.2",
+  "version": "1.0.0",
+  "npmClient": "yarn",
+  "packages": [
+    "packages/*",
+    "packages/@kamado-io/*"
+  ],
+  "command": {
+    "version": {
+      "message": "chore(release): publish %s"
+    }
+  }
 }
