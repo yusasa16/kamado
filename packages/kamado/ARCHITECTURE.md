@@ -73,6 +73,22 @@ graph TD
     K -- No --> L[404 Not Found]
 ```
 
+### CompilableFileMap
+
+The `compilableFileMap` is a `Map<string, CompilableFile>` that maps output file paths to their corresponding source files. It is created by:
+
+1. Iterating through all compiler entries in the configuration
+2. For each compiler, using `getAssetGroup()` to collect files matching the compiler's `files` pattern (excluding those matching `ignore`)
+3. Mapping each file's `outputPath` (the destination path) to the `CompilableFile` object
+
+This map enables the dev server to:
+
+- Quickly look up the source file when a request matches an output path
+- Identify which compiler should be used based on the output extension
+- Perform on-demand compilation without watching file changes
+
+The map is built once at server startup and used for all subsequent requests.
+
 ---
 
 ## API and Extensibility

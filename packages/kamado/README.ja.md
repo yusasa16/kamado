@@ -99,7 +99,7 @@ export const config: UserConfig = {
 			layouts: {
 				dir: path.resolve(import.meta.dirname, '__assets', '_libs', 'layouts'),
 			},
-			async afterSerialize(elements) {
+			async afterSerialize(elements, window, isServe) {
 				// DOM操作やカスタム処理をここに記述
 			},
 		}),
@@ -141,7 +141,7 @@ export default config;
 
 #### 開発サーバー設定
 
-- `devServer.port`: サーバーのポート番号（デフォルト: `8000`）
+- `devServer.port`: サーバーのポート番号（デフォルト: `3000`）
 - `devServer.host`: サーバーのホスト名（デフォルト: `localhost`）
 - `devServer.open`: 起動時にブラウザを自動で開くか（デフォルト: `false`）
 

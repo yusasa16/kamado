@@ -99,7 +99,7 @@ export const config: UserConfig = {
 			layouts: {
 				dir: path.resolve(import.meta.dirname, '__assets', '_libs', 'layouts'),
 			},
-			async afterSerialize(elements) {
+			async afterSerialize(elements, window, isServe) {
 				// DOM manipulation or custom processing here
 			},
 		}),
@@ -141,7 +141,7 @@ export default config;
 
 #### Development Server Settings
 
-- `devServer.port`: Server port number (default: `8000`)
+- `devServer.port`: Server port number (default: `3000`)
 - `devServer.host`: Server host name (default: `localhost`)
 - `devServer.open`: Whether to automatically open the browser on startup (default: `false`)
 
