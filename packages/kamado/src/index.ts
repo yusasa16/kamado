@@ -41,7 +41,11 @@ const cli = roar({
 const configPath = cli.flags.config
 	? path.resolve(process.cwd(), cli.flags.config)
 	: undefined;
-const config = await getConfig(configPath);
+const config = await getConfig(configPath).catch((error: Error) => {
+	// eslint-disable-next-line no-console
+	console.error(c.bold.red(error.message));
+	process.exit(1);
+});
 
 switch (cli.command) {
 	case 'build': {
