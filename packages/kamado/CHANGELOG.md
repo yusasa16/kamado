@@ -7,10 +7,6 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 **Note:** Version bump only for package kamado
 
-
-
-
-
 # [1.0.0-alpha.1](https://github.com/d-zero-dev/kamodo/compare/v0.1.0-alpha.7...v1.0.0-alpha.1) (2025-12-21)
 
 - feat(kamado)!: add flexible extension config and guaranteed compilation order ([e16a8c7](https://github.com/d-zero-dev/kamodo/commit/e16a8c744b0a06bbbe5d16399c38490a968432fa))
