@@ -232,7 +232,7 @@ scriptCompiler({
 - `onBeforeBuild`: Function executed before build
 - `onAfterBuild`: Function executed after build
 
-### Build Commands
+### CLI Commands
 
 #### Build Entire Site
 
@@ -248,10 +248,30 @@ kamado build "path/to/*.css" # Build only CSS files
 kamado build "path/to/*.ts" # Build only TypeScript files
 ```
 
-### Start Development Server
+#### Start Development Server
 
 ```bash
 kamado server
 ```
 
 When the development server starts, pages accessed via the browser are built on demand. If there is a request, it bakes it on the spot and returns it.
+
+### CLI Options
+
+The following options are available for all commands:
+
+| Option            | Short | Description                                                                                                        |
+| ----------------- | ----- | ------------------------------------------------------------------------------------------------------------------ |
+| `--config <path>` | `-c`  | Path to a specific config file. If not specified, Kamado searches for `kamado.config.js`, `kamado.config.ts`, etc. |
+| `--verbose`       |       | Enable verbose logging                                                                                             |
+
+#### Examples
+
+```bash
+# Use a specific config file
+kamado build --config ./custom.config.ts
+kamado server -c ./dev.config.js
+
+# Enable verbose logging during build
+kamado build --verbose
+```
