@@ -27,7 +27,7 @@
 		"pug": "3.0.3"
 	},
 	"peerDependencies": {
-		"@kamado-io/page-compiler": "1.0.0-alpha.1"
+		"@kamado-io/page-compiler": "^1.0.0"
 	},
 	"devDependencies": {
 		"@kamado-io/page-compiler": "1.0.0",
