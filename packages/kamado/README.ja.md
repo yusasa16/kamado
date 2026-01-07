@@ -232,7 +232,7 @@ scriptCompiler({
 - `onBeforeBuild`: ビルド前に実行される関数
 - `onAfterBuild`: ビルド後に実行される関数
 
-### ビルドコマンド
+### CLIコマンド
 
 #### サイト全体のビルド
 
@@ -248,10 +248,30 @@ kamado build "path/to/*.css" # CSSファイルのみをビルド
 kamado build "path/to/*.ts" # TypeScriptファイルのみをビルド
 ```
 
-### 開発サーバーの起動
+#### 開発サーバーの起動
 
 ```bash
 kamado server
 ```
 
 開発サーバーが起動すると、ブラウザでアクセスしたページがオンデマンドでビルドされます。リクエストがあれば、その場で焼いて返します。
+
+### CLIオプション
+
+すべてのコマンドで以下のオプションが利用可能です：
+
+| オプション        | 短縮形 | 説明                                                                                         |
+| ----------------- | ------ | -------------------------------------------------------------------------------------------- |
+| `--config <path>` | `-c`   | 設定ファイルのパスを指定。未指定の場合、`kamado.config.js`、`kamado.config.ts`などを自動探索 |
+| `--verbose`       |        | 詳細なログ出力を有効化                                                                       |
+
+#### 使用例
+
+```bash
+# 特定の設定ファイルを使用
+kamado build --config ./custom.config.ts
+kamado server -c ./dev.config.js
+
+# ビルド時に詳細ログを出力
+kamado build --verbose
+```
