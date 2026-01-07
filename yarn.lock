@@ -1907,7 +1907,7 @@ __metadata:
     pug: "npm:3.0.3"
     typescript: "npm:5.9.3"
   peerDependencies:
-    "@kamado-io/page-compiler": 1.0.0-alpha.1
+    "@kamado-io/page-compiler": ^1.0.0
   languageName: unknown
   linkType: soft
 
