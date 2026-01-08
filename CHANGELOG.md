@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [Unreleased]
+
+### Deprecated
+
+- **kamado:** `kamado/features` module is now deprecated and will be removed in v2.0.0
+  - `getBreadcrumbs` - use `@kamado-io/page-compiler` instead
+  - `getNavTree` - use `@kamado-io/page-compiler` instead
+  - `titleList` - use `@kamado-io/page-compiler` instead
+  - `getTitle` - use `@kamado-io/page-compiler` instead
+  - `getTitleFromStaticFile` - use `@kamado-io/page-compiler` instead
+
 # [1.1.0](https://github.com/d-zero-dev/kamado/compare/v1.0.0...v1.1.0) (2026-01-07)
 
 ### Bug Fixes
