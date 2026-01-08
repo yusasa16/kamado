@@ -1,6 +1,7 @@
+import type { GetNavTreeOptions } from './features/nav.js';
+import type { TitleListOptions } from './features/title-list.js';
 import type { Options as HMTOptions } from 'html-minifier-terser';
 import type { Config } from 'kamado/config';
-import type { GetNavTreeOptions, TitleListOptions } from 'kamado/features';
 import type { CompilableFile, FileObject } from 'kamado/files';
 import type { Options as PrettierOptions } from 'prettier';
 
@@ -12,7 +13,6 @@ import fg from 'fast-glob';
 import { minify } from 'html-minifier-terser';
 import { createCompiler } from 'kamado/compiler';
 import { getGlobalData } from 'kamado/data';
-import { getBreadcrumbs, getNavTree, titleList } from 'kamado/features';
 import { getFileContent } from 'kamado/files';
 import { domSerialize } from 'kamado/utils/dom';
 import {
@@ -20,6 +20,9 @@ import {
 	resolveConfig as prettierResolveConfig,
 } from 'prettier';
 
+import { getBreadcrumbs } from './features/breadcrumbs.js';
+import { getNavTree } from './features/nav.js';
+import { titleList } from './features/title-list.js';
 import { imageSizes, type ImageSizesOptions } from './image.js';
 
 /**
