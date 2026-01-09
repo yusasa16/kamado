@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0](https://github.com/d-zero-dev/kamado/compare/v1.1.0...v1.2.0) (2026-01-09)
+
+### Bug Fixes
+
+- **kamado:** apply AND condition for glob filtering in getAssetGroup ([d885e24](https://github.com/d-zero-dev/kamado/commit/d885e247598087529ef40f8be337cd2ccb25dc18))
+
+### Features
+
+- **page-compiler:** add transform options to breadcrumbs and navigation features ([f50c9d8](https://github.com/d-zero-dev/kamado/commit/f50c9d86586c7c643d3e303e22e64dca663df333))
+
 ## [Unreleased]
 
 ### Deprecated

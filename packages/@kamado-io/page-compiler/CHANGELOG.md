@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0](https://github.com/d-zero-dev/kamado/compare/v1.1.0...v1.2.0) (2026-01-09)
+
+### Features
+
+- **page-compiler:** add transform options to breadcrumbs and navigation features ([f50c9d8](https://github.com/d-zero-dev/kamado/commit/f50c9d86586c7c643d3e303e22e64dca663df333))
+
 # [1.1.0](https://github.com/d-zero-dev/kamado/compare/v1.0.0...v1.1.0) (2026-01-07)
 
 **Note:** Version bump only for package @kamado-io/page-compiler
