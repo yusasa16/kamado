@@ -1,6 +1,8 @@
+import type { BreadcrumbItem } from './features/breadcrumbs.js';
+import type { GetNavTreeOptions, NavNode } from './features/nav.js';
+import type { TitleListOptions } from './features/title-list.js';
 import type { Options as HMTOptions } from 'html-minifier-terser';
 import type { Config } from 'kamado/config';
-import type { GetNavTreeOptions, TitleListOptions } from 'kamado/features';
 import type { CompilableFile, FileObject } from 'kamado/files';
 import type { Options as PrettierOptions } from 'prettier';
 
@@ -12,7 +14,6 @@ import fg from 'fast-glob';
 import { minify } from 'html-minifier-terser';
 import { createCompiler } from 'kamado/compiler';
 import { getGlobalData } from 'kamado/data';
-import { getBreadcrumbs, getNavTree, titleList } from 'kamado/features';
 import { getFileContent } from 'kamado/files';
 import { domSerialize } from 'kamado/utils/dom';
 import {
@@ -20,6 +21,9 @@ import {
 	resolveConfig as prettierResolveConfig,
 } from 'prettier';
 
+import { getBreadcrumbs } from './features/breadcrumbs.js';
+import { getNavTree } from './features/nav.js';
+import { titleList } from './features/title-list.js';
 import { imageSizes, type ImageSizesOptions } from './image.js';
 
 /**
@@ -135,6 +139,35 @@ export interface PageCompilerOptions {
 	 * Can be an object or a function that returns an object
 	 */
 	readonly compileHooks?: CompileHooks;
+	/**
+	 * Transform each breadcrumb item
+	 * @param item - Original breadcrumb item
+	 * @returns Transformed breadcrumb item (can include additional properties)
+	 * @example
+	 * ```typescript
+	 * pageCompiler({
+	 *   transformBreadcrumbItem: (item) => ({
+	 *     ...item,
+	 *     icon: item.href === '/' ? 'home' : 'page',
+	 *   }),
+	 * });
+	 * ```
+	 */
+	readonly transformBreadcrumbItem?: (item: BreadcrumbItem) => BreadcrumbItem;
+	/**
+	 * Transform each navigation node
+	 * @param node - Original navigation node
+	 * @returns Transformed navigation node (can include additional properties, or null/undefined to remove the node)
+	 * @example
+	 * ```typescript
+	 * pageCompiler({
+	 *   transformNavNode: (node) => {
+	 *     return { ...node, badge: 'new' };
+	 *   },
+	 * });
+	 * ```
+	 */
+	readonly transformNavNode?: (node: NavNode) => NavNode | null | undefined;
 }
 
 /**
@@ -148,7 +181,7 @@ export interface CompileData extends Record<string, unknown> {
 	/**
 	 * Navigation tree function
 	 */
-	readonly nav: (options: GetNavTreeOptions) => unknown;
+	readonly nav: (options: GetNavTreeOptions) => NavNode | null | undefined;
 	/**
 	 * Title list function
 	 */
@@ -290,9 +323,10 @@ export const pageCompiler = createCompiler<PageCompilerOptions>(() => ({
 			const pageContent = await file.get(cache);
 			const { metaData, content: pageMainContent } = pageContent;
 
-			const breadcrumbs = await getBreadcrumbs(file, globalData?.pageList ?? [], {
+			const breadcrumbs = getBreadcrumbs(file, globalData?.pageList ?? [], {
 				baseURL: config.pkg.production?.baseURL,
 				optimizeTitle: options?.optimizeTitle,
+				transformItem: options?.transformBreadcrumbItem,
 			});
 
 			const compileData: CompileData = {
@@ -300,12 +334,11 @@ export const pageCompiler = createCompiler<PageCompilerOptions>(() => ({
 				...metaData,
 				page: file,
 				nav: (navOptions: GetNavTreeOptions) =>
-					getNavTree(
-						file,
-						globalData?.pageList ?? [],
-						options?.optimizeTitle,
-						navOptions,
-					),
+					getNavTree(file, globalData?.pageList ?? [], {
+						optimizeTitle: options?.optimizeTitle,
+						...navOptions,
+						transformNode: options?.transformNavNode,
+					}),
 				titleList: (options: TitleListOptions) =>
 					titleList(breadcrumbs, {
 						siteName: config.pkg.production?.siteName,

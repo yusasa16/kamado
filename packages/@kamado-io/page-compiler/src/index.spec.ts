@@ -2,7 +2,10 @@ import type { PageCompilerOptions } from './index.js';
 import type { CompilableFile } from 'kamado/files';
 
 import { mergeConfig } from 'kamado/config';
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, expectTypeOf } from 'vitest';
+
+import { type BreadcrumbItem } from './features/breadcrumbs.js';
+import { type NavNode } from './features/nav.js';
 
 import { pageCompiler } from './index.js';
 
@@ -178,5 +181,59 @@ describe('page compiler', async () => {
 			}),
 		});
 		expect(result).toBe('<p>Hello, world!</p>\n');
+	});
+});
+
+describe('type inference for transform options', () => {
+	describe('PageCompilerOptions transform functions', () => {
+		test('transformBreadcrumbItem should accept valid function', () => {
+			const options: PageCompilerOptions = {
+				transformBreadcrumbItem: (item) => ({
+					...item,
+					icon: 'test',
+				}),
+			};
+
+			expectTypeOf(options.transformBreadcrumbItem).toExtend<
+				((item: BreadcrumbItem) => BreadcrumbItem) | undefined
+			>();
+		});
+
+		test('transformNavNode should accept valid function', () => {
+			const options: PageCompilerOptions = {
+				transformNavNode: (node) => ({
+					...node,
+					badge: 'test',
+				}),
+			};
+
+			expectTypeOf(options.transformNavNode).toExtend<
+				((node: NavNode) => NavNode | null | undefined) | undefined
+			>();
+		});
+
+		test('transformBreadcrumbItem should accept sync function', () => {
+			const options: PageCompilerOptions = {
+				transformBreadcrumbItem: (item) => {
+					return {
+						...item,
+					};
+				},
+			};
+
+			expect(options.transformBreadcrumbItem).toBeDefined();
+		});
+
+		test('transformNavNode should accept sync function', () => {
+			const options: PageCompilerOptions = {
+				transformNavNode: (node) => {
+					return {
+						...node,
+					};
+				},
+			};
+
+			expect(options.transformNavNode).toBeDefined();
+		});
 	});
 });

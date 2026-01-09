@@ -1,4 +1,4 @@
-import type { CompilableFile } from '../files/types.js';
+import type { CompilableFile } from 'kamado/files';
 
 import path from 'node:path';
 
@@ -24,8 +24,11 @@ export type BreadcrumbItem = {
 
 /**
  * Options for getting breadcrumbs
+ * @template TOut - Type of additional properties added by transformItem
  */
-export type GetBreadcrumbsOptions = {
+export type GetBreadcrumbsOptions<
+	TOut extends Record<string, unknown> = Record<never, never>,
+> = {
 	/**
 	 * Base URL
 	 * @default '/'
@@ -35,49 +38,71 @@ export type GetBreadcrumbsOptions = {
 	 * Function to optimize titles
 	 */
 	readonly optimizeTitle?: (title: string) => string;
+	/**
+	 * Transform each breadcrumb item
+	 * @param item - Original breadcrumb item
+	 * @returns Transformed breadcrumb item with additional properties
+	 */
+	readonly transformItem?: (item: BreadcrumbItem) => BreadcrumbItem & TOut;
 };
 
 /**
  * Gets breadcrumb list for a page
- * @deprecated This function will be removed in the next major version (v2.0.0).
- * Import from '@kamado-io/page-compiler' instead.
+ * @template TOut - Type of additional properties added by transformItem
  * @param page - Target page file
  * @param pageList - List of all page files
  * @param options - Options for getting breadcrumbs
- * @returns Array of breadcrumb items
+ * @returns Array of breadcrumb items (with additional properties if transformItem is specified)
  * @example
  * ```typescript
- * const breadcrumbs = await getBreadcrumbs(currentPage, pageList, {
+ * const breadcrumbs = getBreadcrumbs(currentPage, pageList, {
  *   baseURL: '/',
  *   optimizeTitle: (title) => title.trim(),
  * });
  * ```
+ * @example
+ * ```typescript
+ * // With transformItem for adding custom properties
+ * const breadcrumbs = getBreadcrumbs(currentPage, pageList, {
+ *   transformItem: (item) => ({
+ *     ...item,
+ *     icon: item.href === '/' ? 'home' : 'page',
+ *   }),
+ * });
+ * ```
  */
-export async function getBreadcrumbs(
+export function getBreadcrumbs<
+	TOut extends Record<string, unknown> = Record<never, never>,
+>(
 	page: CompilableFile & { title?: string },
 	pageList: readonly (CompilableFile & { title?: string })[],
-	options?: GetBreadcrumbsOptions,
-): Promise<BreadcrumbItem[]> {
+	options?: GetBreadcrumbsOptions<TOut>,
+): (BreadcrumbItem & TOut)[] {
 	const baseURL = options?.baseURL ?? '/';
 	const optimizeTitle = options?.optimizeTitle;
 	const baseDepth = baseURL.split('/').filter(Boolean).length;
 	const pages = pageList.filter((item) =>
 		isAncestor(page.filePathStem, item.filePathStem),
 	);
-	const breadcrumbs = await Promise.all(
-		pages.map(async (item) => ({
-			title:
-				item.title?.trim() ||
-				(await getTitle(item, optimizeTitle, true)) ||
-				'__NO_TITLE__',
-			href: item.url,
-			depth: item.url.split('/').filter(Boolean).length,
-		})),
-	);
+	const breadcrumbs = pages.map((sourcePage) => ({
+		title:
+			sourcePage.title?.trim() ||
+			getTitle(sourcePage, optimizeTitle, true) ||
+			'__NO_TITLE__',
+		href: sourcePage.url,
+		depth: sourcePage.url.split('/').filter(Boolean).length,
+	}));
 
-	return breadcrumbs
+	const filtered = breadcrumbs
 		.filter((item) => item.depth >= baseDepth)
 		.toSorted((a, b) => a.depth - b.depth);
+
+	// Apply transformItem if specified
+	if (options?.transformItem) {
+		return filtered.map((item) => options.transformItem!(item as BreadcrumbItem));
+	}
+
+	return filtered as (BreadcrumbItem & TOut)[];
 }
 
 /**
