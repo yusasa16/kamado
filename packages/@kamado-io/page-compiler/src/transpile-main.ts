@@ -25,40 +25,40 @@ export async function transpileMainContent(
 	compileHook: CompileHook | undefined,
 	log?: (message: string) => void,
 ): Promise<string> {
-	let mainContentHtml = content;
-
-	// Apply compileHooks for main content (extension-independent)
-	if (compileHook) {
-		try {
-			let processedContent = content;
-
-			// Apply before hook
-			if (compileHook.before) {
-				processedContent = await compileHook.before(processedContent, compileData);
-			}
-
-			// Compile
-			if (compileHook.compiler) {
-				log?.(c.yellowBright('Compiling main content...'));
-				mainContentHtml = await compileHook.compiler(
-					processedContent,
-					compileData,
-					file.extension,
-				);
-			}
-			// If no compiler is specified, pass through as-is
-
-			// Apply after hook
-			if (compileHook.after) {
-				mainContentHtml = await compileHook.after(mainContentHtml, compileData);
-			}
-		} catch (error) {
-			log?.(c.red(`❌ ${file.inputPath}`));
-			throw new Error(`Failed to compile the page: ${file.inputPath}`, {
-				cause: error,
-			});
-		}
+	if (!compileHook) {
+		return content;
 	}
 
-	return mainContentHtml;
+	try {
+		let processedContent = content;
+
+		// Apply before hook
+		if (compileHook.before) {
+			processedContent = await compileHook.before(processedContent, compileData);
+		}
+
+		// Compile
+		let mainContentHtml = content;
+		if (compileHook.compiler) {
+			log?.(c.yellowBright('Compiling main content...'));
+			mainContentHtml = await compileHook.compiler(
+				processedContent,
+				compileData,
+				file.extension,
+			);
+		}
+		// If no compiler is specified, pass through as-is
+
+		// Apply after hook
+		if (compileHook.after) {
+			mainContentHtml = await compileHook.after(mainContentHtml, compileData);
+		}
+
+		return mainContentHtml;
+	} catch (error) {
+		log?.(c.red(`❌ ${file.inputPath}`));
+		throw new Error(`Failed to compile the page: ${file.inputPath}`, {
+			cause: error,
+		});
+	}
 }

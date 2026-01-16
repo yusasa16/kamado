@@ -29,42 +29,42 @@ export async function transpileLayout(
 	compileHook: CompileHook | undefined,
 	log?: (message: string) => void,
 ): Promise<string> {
-	let html = layoutContent;
-
-	// Apply compileHooks for layout (extension-independent)
-	if (compileHook) {
-		try {
-			let processedContent = layoutContent;
-
-			// Apply before hook
-			if (compileHook.before) {
-				processedContent = await compileHook.before(processedContent, layoutCompileData);
-			}
-
-			// Compile
-			if (compileHook.compiler) {
-				log?.(c.greenBright('Compiling layout...'));
-				html = await compileHook.compiler(
-					processedContent,
-					layoutCompileData,
-					layoutExtension,
-				);
-			} else {
-				// If no compiler is specified, use layout content as-is
-				html = processedContent;
-			}
-
-			// Apply after hook
-			if (compileHook.after) {
-				html = await compileHook.after(html, layoutCompileData);
-			}
-		} catch (error) {
-			log?.(c.red(`❌ Layout: ${layout.inputPath} (Content: ${file.inputPath})`));
-			throw new Error(`Failed to compile the layout: ${layout.inputPath}`, {
-				cause: error,
-			});
-		}
+	if (!compileHook) {
+		return layoutContent;
 	}
 
-	return html;
+	try {
+		let processedContent = layoutContent;
+
+		// Apply before hook
+		if (compileHook.before) {
+			processedContent = await compileHook.before(processedContent, layoutCompileData);
+		}
+
+		// Compile
+		let html: string;
+		if (compileHook.compiler) {
+			log?.(c.greenBright('Compiling layout...'));
+			html = await compileHook.compiler(
+				processedContent,
+				layoutCompileData,
+				layoutExtension,
+			);
+		} else {
+			// If no compiler is specified, use layout content as-is
+			html = processedContent;
+		}
+
+		// Apply after hook
+		if (compileHook.after) {
+			html = await compileHook.after(html, layoutCompileData);
+		}
+
+		return html;
+	} catch (error) {
+		log?.(c.red(`❌ Layout: ${layout.inputPath} (Content: ${file.inputPath})`));
+		throw new Error(`Failed to compile the layout: ${layout.inputPath}`, {
+			cause: error,
+		});
+	}
 }
