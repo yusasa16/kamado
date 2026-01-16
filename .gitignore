@@ -16,7 +16,7 @@ yarn-error.log
 *storybook.log
 
 # claude
-.claude/
+.claude/*.local.json
 
 # build outputs
 packages/**/dist/
