@@ -387,25 +387,33 @@ export const pageCompiler = createCompiler<PageCompilerOptions>(() => ({
 			}
 
 			log?.(c.cyanBright('Formatting...'));
+
+			// Determine URL for JSDOM
+			const isServe = false;
+			const url =
+				options?.host ??
+				(isServe
+					? `http://${config.devServer.host}:${config.devServer.port}`
+					: (config.pkg.production?.baseURL ??
+						(config.pkg.production?.host
+							? `http://${config.pkg.production.host}`
+							: undefined)));
+
 			const formattedHtml = await formatHtml({
 				content: html,
 				inputPath: file.inputPath,
 				outputPath: file.outputPath,
 				outputDir: config.dir.output,
-				devServerHost: config.devServer.host,
-				devServerPort: config.devServer.port,
-				productionBaseURL: config.pkg.production?.baseURL,
-				productionHost: config.pkg.production?.host,
+				url,
 				beforeSerialize: options?.beforeSerialize,
 				afterSerialize: options?.afterSerialize,
-				host: options?.host,
 				imageSizes: options?.imageSizes,
 				characterEntities: options?.characterEntities,
 				prettier: options?.prettier,
 				minifier: options?.minifier,
 				lineBreak: options?.lineBreak,
 				replace: options?.replace,
-				isServe: false,
+				isServe,
 			});
 
 			return formattedHtml;

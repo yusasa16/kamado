@@ -33,22 +33,6 @@ export interface FormatHtmlOptions {
 	 */
 	readonly outputDir: string;
 	/**
-	 * Development server host
-	 */
-	readonly devServerHost: string;
-	/**
-	 * Development server port
-	 */
-	readonly devServerPort: number;
-	/**
-	 * Production base URL
-	 */
-	readonly productionBaseURL?: string;
-	/**
-	 * Production host
-	 */
-	readonly productionHost?: string;
-	/**
 	 * Hook function called before DOM serialization
 	 */
 	readonly beforeSerialize?: PageCompilerOptions['beforeSerialize'];
@@ -57,9 +41,9 @@ export interface FormatHtmlOptions {
 	 */
 	readonly afterSerialize?: PageCompilerOptions['afterSerialize'];
 	/**
-	 * JSDOM URL configuration
+	 * JSDOM URL configuration (optional)
 	 */
-	readonly host?: string;
+	readonly url?: string;
 	/**
 	 * Configuration for automatically adding width/height attributes to images
 	 */
@@ -111,13 +95,9 @@ export async function formatHtml(
 		inputPath,
 		outputPath,
 		outputDir,
-		devServerHost,
-		devServerPort,
-		productionBaseURL,
-		productionHost,
 		beforeSerialize,
 		afterSerialize,
-		host,
+		url,
 		imageSizes: imageSizesOption,
 		characterEntities: characterEntitiesOption,
 		prettier: prettierOption,
@@ -129,17 +109,6 @@ export async function formatHtml(
 	let content = initialContent;
 	if (beforeSerialize) {
 		content = await beforeSerialize(content, isServe);
-	}
-
-	// Determine URL for JSDOM
-	let jsdomUrl: string | undefined;
-	if (host) {
-		jsdomUrl = host;
-	} else if (isServe) {
-		jsdomUrl = `http://${devServerHost}:${devServerPort}`;
-	} else {
-		jsdomUrl =
-			productionBaseURL ?? (productionHost ? `http://${productionHost}` : undefined);
 	}
 
 	const imageSizesValue = imageSizesOption ?? true;
@@ -160,7 +129,7 @@ export async function formatHtml(
 
 				await afterSerialize?.(elements, window, isServe);
 			},
-			jsdomUrl,
+			url,
 		);
 	}
 
