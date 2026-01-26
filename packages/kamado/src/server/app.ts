@@ -30,7 +30,10 @@ export async function start(config: Config) {
 		port: context.devServer.port,
 	});
 
-	const location = `http://${context.devServer.host}:${context.devServer.port}`;
+	const baseUrl = new URL(`http://${context.devServer.host}:${context.devServer.port}`);
+	baseUrl.pathname = context.devServer.startPath ?? '';
+
+	const location = baseUrl.toString();
 	const relDocumentRoot =
 		'.' + path.sep + path.relative(process.cwd(), context.dir.input);
 
