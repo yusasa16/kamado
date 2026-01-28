@@ -112,11 +112,12 @@ graph TD
     E --> F{compilableFileMap に<br>存在するか?}
     F -- Yes --> G[対応するコンパイラを特定]
     G --> H[オンメモリでコンパイル実行]
-    H --> I[レスポンスとして返却]
-    F -- No --> J[出力ディレクトリ内の<br>静的ファイルを検索]
-    J --> K{ファイルが存在するか?}
-    K -- Yes --> I
-    K -- No --> L[404 Not Found]
+    H --> I[レスポンス変換を適用]
+    I --> J[レスポンスとして返却]
+    F -- No --> K[出力ディレクトリ内の<br>静的ファイルを検索]
+    K --> L{ファイルが存在するか?}
+    L -- Yes --> I
+    L -- No --> M[404 Not Found]
 ```
 
 ### CompilableFileMap
@@ -171,6 +172,82 @@ export interface CompileFunction {
 - `onAfterBuild(context: Context)`: ビルド完了後に実行（サイトマップ生成、通知など）。`mode`フィールドを持つ`Context`を受け取ります。
 
 両方のフックは`Config`ではなく`Context`を受け取るため、ビルドモードか開発サーバーモードかを検出できます。
+
+### レスポンス変換API
+
+レスポンス変換APIは、開発サーバーモード（`serve`モードのみ）でレスポンスコンテンツを変更できます。`src/server/transform.ts`に実装され、`src/server/route.ts`のリクエスト処理フローに統合されています。
+
+#### アーキテクチャ
+
+```typescript
+// 変換インターフェース
+export interface ResponseTransform {
+	readonly name?: string;
+	readonly filter?: {
+		readonly include?: string | readonly string[];
+		readonly exclude?: string | readonly string[];
+		readonly contentType?: string | readonly string[];
+	};
+	readonly transform: (
+		content: string | ArrayBuffer,
+		context: TransformContext,
+	) => Promise<string | ArrayBuffer> | string | ArrayBuffer;
+}
+
+// 変換コンテキストはリクエスト/レスポンス情報を提供
+export interface TransformContext {
+	readonly path: string; // リクエストパス
+	readonly contentType: string | undefined; // レスポンスContent-Type
+	readonly inputPath?: string; // ソースファイルパス（利用可能な場合）
+	readonly outputPath: string; // 出力ファイルパス
+	readonly isServe: boolean; // 開発サーバーでは常にtrue
+	readonly context: Context; // 完全な実行コンテキスト
+}
+```
+
+#### 実行フロー
+
+1. **モードチェック**: `serve`モードでのみ実行（`applyTransforms()`でチェック）
+2. **フィルタマッチング**: 各変換に対して以下をチェック：
+   - picomatchを使用したパスパターン（Globパターンマッチング）
+   - Content-Typeパターン（`text/*`のようなワイルドカード対応）
+3. **順次実行**: 変換は配列の順序で適用
+4. **エラーハンドリング**: エラーはログに記録されますがサーバーを停止させません。エラー時は元のコンテンツが返されます
+
+#### 実装の詳細
+
+**場所**: `src/server/transform.ts`
+
+主要な関数:
+
+- `applyTransforms(content, context, transforms)`: メインの実行エンジン
+- `shouldApplyTransform(transform, context)`: フィルタマッチングロジック
+
+**統合**: `src/server/route.ts`
+
+変換は、リクエストハンドラの2箇所で適用されます：
+
+1. `compilableFileMap`でマッチしたファイルのコンパイル後
+2. 出力ディレクトリから静的ファイルを読み込んだ後
+
+ヘルパー関数`respondWithTransform()`が変換適用ロジックを集約しています。
+
+#### パフォーマンス特性
+
+- **最小限のオーバーヘッド**: 変換が設定されている場合のみ実行
+- **ストリーミング互換**: stringとArrayBufferの両方のコンテンツに対応
+- **ノンブロッキング**: `Promise.resolve()`経由で非同期変換をサポート
+- **フェイルセーフ**: 個別の変換エラーが他の変換やサーバーに影響しない
+
+#### ユースケース
+
+- **開発ツール**: ライブリロードスクリプト、デバッグパネルの挿入
+- **疑似SSI**: 開発用のサーバーサイドインクルード
+- **ヘッダー挿入**: メタタグ、CSPヘッダー（コメントとして）の追加
+- **ソースマッピング**: コンパイル済み出力にソースファイルコメントを追加
+- **モックデータ**: APIレスポンスにテストデータを挿入
+
+**注意**: このAPIは意図的に開発専用です。本番用の変換には、コンパイラフック（`beforeSerialize`、`afterSerialize`、`replace`）またはビルド時処理を使用してください。
 
 ---
 

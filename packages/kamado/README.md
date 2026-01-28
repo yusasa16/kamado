@@ -147,6 +147,7 @@ export default config;
 - `devServer.host`: Server host name (default: `localhost`)
 - `devServer.open`: Whether to automatically open the browser on startup (default: `false`)
 - `devServer.startPath`: Custom path to open in the browser when starting the server (optional, e.g., `'__tmpl/'`)
+- `devServer.transforms`: Array of response transformation functions that modify responses during development (optional, see [Response Transform API](#response-transform-api))
 
 #### Compiler Settings
 
@@ -269,6 +270,149 @@ Returns an array of `CompilableFile` objects, optionally with a `title` property
 
 - `onBeforeBuild`: Function executed before build. Receives `Context` (which extends `Config` with `mode: 'build' | 'serve'`)
 - `onAfterBuild`: Function executed after build. Receives `Context` (which extends `Config` with `mode: 'build' | 'serve'`)
+
+#### Response Transform API
+
+The Response Transform API allows you to modify response content during development server mode. This is useful for injecting scripts, implementing pseudo-SSI, adding meta tags, or any other response transformation needs.
+
+**Key Features:**
+
+- **Development-only**: Transforms only apply in `serve` mode, not during builds
+- **Flexible filtering**: Filter by glob patterns and Content-Type (supports wildcards like `text/*`)
+- **Error resilient**: Errors in transform functions don't break the server
+- **Async support**: Supports both synchronous and asynchronous transform functions
+- **Chainable**: Multiple transforms are applied in array order
+
+**Configuration:**
+
+```typescript
+import type { UserConfig } from 'kamado/config';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+
+export const config: UserConfig = {
+	devServer: {
+		port: 3000,
+		transforms: [
+			// Example 1: Inject development script into HTML
+			{
+				name: 'inject-dev-script',
+				filter: {
+					include: '**/*.html',
+					contentType: 'text/html',
+				},
+				transform: (content) => {
+					if (typeof content !== 'string') {
+						const decoder = new TextDecoder('utf-8');
+						content = decoder.decode(content);
+					}
+					return content.replace(
+						'</body>',
+						'<script src="/__dev-tools.js"></script></body>',
+					);
+				},
+			},
+
+			// Example 2: Implement pseudo-SSI (Server Side Includes)
+			{
+				name: 'pseudo-ssi',
+				filter: {
+					include: '**/*.html',
+				},
+				transform: async (content, ctx) => {
+					if (typeof content !== 'string') {
+						const decoder = new TextDecoder('utf-8');
+						content = decoder.decode(content);
+					}
+
+					// Process <!--#include virtual="/path/to/file.html" -->
+					const includeRegex = /<!--#include virtual="([^"]+)" -->/g;
+					let result = content;
+
+					for (const match of content.matchAll(includeRegex)) {
+						const includePath = match[1];
+						const filePath = path.resolve(
+							ctx.context.dir.output,
+							includePath.replace(/^\//, ''),
+						);
+
+						try {
+							const includeContent = await fs.readFile(filePath, 'utf-8');
+							result = result.replace(match[0], includeContent);
+						} catch (error) {
+							console.warn(`Failed to include ${includePath}:`, error);
+						}
+					}
+
+					return result;
+				},
+			},
+
+			// Example 3: Add source comment to CSS files
+			{
+				name: 'css-source-comment',
+				filter: {
+					contentType: 'text/css',
+				},
+				transform: (content, ctx) => {
+					if (typeof content !== 'string') {
+						const decoder = new TextDecoder('utf-8');
+						content = decoder.decode(content);
+					}
+					const source = ctx.inputPath || ctx.outputPath;
+					return `/* Generated from: ${source} */\n${content}`;
+				},
+			},
+		],
+	},
+};
+```
+
+**ResponseTransform Interface:**
+
+```typescript
+interface ResponseTransform {
+	name?: string; // Transform name for debugging
+	filter?: {
+		include?: string | string[]; // Glob patterns to include
+		exclude?: string | string[]; // Glob patterns to exclude
+		contentType?: string | string[]; // Content-Type filter (supports wildcards)
+	};
+	transform: (
+		content: string | ArrayBuffer,
+		context: TransformContext,
+	) => Promise<string | ArrayBuffer> | string | ArrayBuffer;
+}
+
+interface TransformContext {
+	path: string; // Request path
+	contentType: string | undefined; // Response Content-Type
+	inputPath?: string; // Original input file path (if available)
+	outputPath: string; // Output file path
+	isServe: boolean; // Always true in dev server
+	context: Context; // Full execution context
+}
+```
+
+**Filter Options:**
+
+- `include`: Glob pattern(s) to match request paths (e.g., `'**/*.html'`, `['**/*.css', '**/*.js']`)
+- `exclude`: Glob pattern(s) to exclude (e.g., `'**/_*.html'` to skip files starting with `_`)
+- `contentType`: Content-Type filter(s) with wildcard support (e.g., `'text/html'`, `'text/*'`, `['text/html', 'application/json']`)
+
+**Important Notes:**
+
+- Transform functions receive either `string` or `ArrayBuffer`. For text-based transformations, decode `ArrayBuffer` using `TextDecoder`:
+  ```typescript
+  if (typeof content !== 'string') {
+  	const decoder = new TextDecoder('utf-8');
+  	content = decoder.decode(content);
+  }
+  ```
+- Static files (non-compiled files) are typically passed as `ArrayBuffer`, so always decode them if you need to process as text
+- Errors in transform functions are logged but don't break the server (original content is returned)
+- Transforms are executed in array order
+- Only applied in development server mode (`kamado server`), not during builds
 
 ### CLI Commands
 
