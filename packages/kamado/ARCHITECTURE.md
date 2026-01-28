@@ -112,11 +112,12 @@ graph TD
     E --> F{Exists in<br>compilableFileMap?}
     F -- Yes --> G[Identify corresponding compiler]
     G --> H[Perform in-memory compilation]
-    H --> I[Return as response]
-    F -- No --> J[Search for static files<br>in output directory]
-    J --> K{File exists?}
-    K -- Yes --> I
-    K -- No --> L[404 Not Found]
+    H --> I[Apply Response Transforms]
+    I --> J[Return as response]
+    F -- No --> K[Search for static files<br>in output directory]
+    K --> L{File exists?}
+    L -- Yes --> I
+    L -- No --> M[404 Not Found]
 ```
 
 ### CompilableFileMap
@@ -171,6 +172,82 @@ Users can insert custom logic before and after the build via `kamado.config.ts`.
 - `onAfterBuild(context: Context)`: Executed after the build completes (e.g., generating sitemaps, notifications). Receives `Context` with `mode` field.
 
 Both hooks receive `Context` instead of `Config`, allowing them to detect whether they are running in build or serve mode.
+
+### Response Transform API
+
+The Response Transform API allows modification of response content during development server mode (`serve` mode only). It is implemented in `src/server/transform.ts` and integrated into the request handling flow in `src/server/route.ts`.
+
+#### Architecture
+
+```typescript
+// Transform interface
+export interface ResponseTransform {
+	readonly name?: string;
+	readonly filter?: {
+		readonly include?: string | readonly string[];
+		readonly exclude?: string | readonly string[];
+		readonly contentType?: string | readonly string[];
+	};
+	readonly transform: (
+		content: string | ArrayBuffer,
+		context: TransformContext,
+	) => Promise<string | ArrayBuffer> | string | ArrayBuffer;
+}
+
+// Transform context provides request/response information
+export interface TransformContext {
+	readonly path: string; // Request path
+	readonly contentType: string | undefined; // Response Content-Type
+	readonly inputPath?: string; // Source file path (if available)
+	readonly outputPath: string; // Output file path
+	readonly isServe: boolean; // Always true in dev server
+	readonly context: Context; // Full execution context
+}
+```
+
+#### Execution Flow
+
+1. **Mode Check**: Only executes in `serve` mode (checked in `applyTransforms()`)
+2. **Filter Matching**: For each transform, checks:
+   - Path patterns using picomatch (glob pattern matching)
+   - Content-Type patterns (supports wildcards like `text/*`)
+3. **Sequential Execution**: Transforms are applied in array order
+4. **Error Handling**: Errors are logged but don't break the server; original content is returned on error
+
+#### Implementation Details
+
+**Location**: `src/server/transform.ts`
+
+Key functions:
+
+- `applyTransforms(content, context, transforms)`: Main execution engine
+- `shouldApplyTransform(transform, context)`: Filter matching logic
+
+**Integration**: `src/server/route.ts`
+
+The transform is applied at two points in the request handler:
+
+1. After compiling files matched in `compilableFileMap`
+2. After reading static files from the output directory
+
+A helper function `respondWithTransform()` consolidates the transform application logic.
+
+#### Performance Characteristics
+
+- **Minimal Overhead**: Only executes when transforms are configured
+- **Streaming-Compatible**: Works with both string and ArrayBuffer content
+- **Non-Blocking**: Async transforms are supported via `Promise.resolve()`
+- **Fail-Safe**: Individual transform errors don't affect other transforms or the server
+
+#### Use Cases
+
+- **Development Tools**: Inject live reload scripts, debug panels
+- **Pseudo-SSI**: Server-side includes for development
+- **Header Injection**: Add meta tags, CSP headers (as comments)
+- **Source Mapping**: Add source file comments to compiled outputs
+- **Mock Data**: Inject test data into API responses
+
+**Note**: This API is intentionally development-only. For production transformations, use compiler hooks (`beforeSerialize`, `afterSerialize`, `replace`) or build-time processing.
 
 ---
 

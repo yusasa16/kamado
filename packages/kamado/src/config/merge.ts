@@ -32,6 +32,7 @@ export async function mergeConfig(
 			port: 3000,
 			host: 'localhost',
 			startPath: undefined,
+			transforms: [],
 			...config.devServer,
 		},
 		pageList: config.pageList,

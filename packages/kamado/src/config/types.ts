@@ -89,6 +89,87 @@ export interface DirectoryConfig {
 }
 
 /**
+ * Response transform context
+ * Provides information about the current request and response
+ */
+export interface TransformContext {
+	/**
+	 * Request path (relative to output directory)
+	 */
+	readonly path: string;
+	/**
+	 * Response Content-Type header
+	 */
+	readonly contentType: string | undefined;
+	/**
+	 * Original input file path (if available from compiler)
+	 */
+	readonly inputPath?: string;
+	/**
+	 * Output file path
+	 */
+	readonly outputPath: string;
+	/**
+	 * Whether running in development server mode
+	 */
+	readonly isServe: boolean;
+	/**
+	 * Execution context (config + mode)
+	 */
+	readonly context: Context;
+}
+
+/**
+ * Response transformation function
+ * Allows modifying response content in development server
+ */
+export interface ResponseTransform {
+	/**
+	 * Transform name (for debugging and error messages)
+	 */
+	readonly name?: string;
+	/**
+	 * Filter conditions to determine when to apply this transform
+	 */
+	readonly filter?: {
+		/**
+		 * Include paths (glob pattern)
+		 * @example '**\/*.html'
+		 */
+		readonly include?: string | readonly string[];
+		/**
+		 * Exclude paths (glob pattern)
+		 * @example '**\/_*.html'
+		 */
+		readonly exclude?: string | readonly string[];
+		/**
+		 * Content-Type filter
+		 * Supports wildcard patterns like 'text/*'
+		 * @example ['text/html', 'text/css']
+		 */
+		readonly contentType?: string | readonly string[];
+	};
+	/**
+	 * Transform function to modify response content
+	 * @param content - Response content (string or ArrayBuffer).
+	 *                  Static files (non-compiled) are typically ArrayBuffer.
+	 *                  Use TextDecoder to decode ArrayBuffer for text processing:
+	 *                  ```
+	 *                  if (typeof content !== 'string') {
+	 *                    const decoder = new TextDecoder('utf-8');
+	 *                    content = decoder.decode(content);
+	 *                  }
+	 *                  ```
+	 * @param context - Transform context with request/response information
+	 * @returns Transformed content (can be async)
+	 */
+	readonly transform: (
+		content: string | ArrayBuffer,
+		context: TransformContext,
+	) => Promise<string | ArrayBuffer> | string | ArrayBuffer;
+}
+
+/**
  * Development server configuration
  */
 export interface DevServerConfig {
@@ -108,6 +189,28 @@ export interface DevServerConfig {
 	 * Path to start the server
 	 */
 	readonly startPath?: string;
+	/**
+	 * Response transformation functions (dev server only)
+	 * Applied in array order to all responses matching the filter.
+	 * Static files (non-compiled) are passed as ArrayBuffer - use TextDecoder to decode.
+	 * @example
+	 * ```typescript
+	 * transforms: [
+	 *   {
+	 *     name: 'inject-script',
+	 *     filter: { include: '**\/*.html', contentType: 'text/html' },
+	 *     transform: (content) => {
+	 *       if (typeof content !== 'string') {
+	 *         const decoder = new TextDecoder('utf-8');
+	 *         content = decoder.decode(content);
+	 *       }
+	 *       return content.replace('</body>', '<script>...</script></body>');
+	 *     }
+	 *   }
+	 * ]
+	 * ```
+	 */
+	readonly transforms?: readonly ResponseTransform[];
 }
 
 /**

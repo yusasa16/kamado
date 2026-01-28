@@ -147,6 +147,7 @@ export default config;
 - `devServer.host`: サーバーのホスト名（デフォルト: `localhost`）
 - `devServer.open`: 起動時にブラウザを自動で開くか（デフォルト: `false`）
 - `devServer.startPath`: サーバー起動時にブラウザで開くカスタムパス（オプション、例: `'__tmpl/'`）
+- `devServer.transforms`: 開発時にレスポンスを変換する関数の配列（オプション、[レスポンス変換API](#レスポンス変換api)を参照）
 
 #### コンパイラ設定
 
@@ -269,6 +270,149 @@ export const config: UserConfig = {
 
 - `onBeforeBuild`: ビルド前に実行される関数。`Context`（`Config`を拡張し`mode: 'build' | 'serve'`を含む）を受け取ります
 - `onAfterBuild`: ビルド後に実行される関数。`Context`（`Config`を拡張し`mode: 'build' | 'serve'`を含む）を受け取ります
+
+#### レスポンス変換API
+
+レスポンス変換APIを使用すると、開発サーバーモード時にレスポンスコンテンツを変更できます。スクリプトの挿入、疑似SSIの実装、メタタグの追加など、あらゆるレスポンス変換のニーズに対応します。
+
+**主な特徴:**
+
+- **開発時のみ**: 変換は`serve`モードでのみ適用され、ビルド時には適用されません
+- **柔軟なフィルタリング**: GlobパターンとContent-Typeでフィルタリング（`text/*`のようなワイルドカード対応）
+- **エラー耐性**: 変換関数のエラーがサーバーを停止させません
+- **非同期対応**: 同期・非同期両方の変換関数をサポート
+- **チェーン可能**: 複数の変換を配列順に適用
+
+**設定例:**
+
+```typescript
+import type { UserConfig } from 'kamado/config';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+
+export const config: UserConfig = {
+	devServer: {
+		port: 3000,
+		transforms: [
+			// 例1: HTMLに開発用スクリプトを挿入
+			{
+				name: 'inject-dev-script',
+				filter: {
+					include: '**/*.html',
+					contentType: 'text/html',
+				},
+				transform: (content) => {
+					if (typeof content !== 'string') {
+						const decoder = new TextDecoder('utf-8');
+						content = decoder.decode(content);
+					}
+					return content.replace(
+						'</body>',
+						'<script src="/__dev-tools.js"></script></body>',
+					);
+				},
+			},
+
+			// 例2: 疑似SSI（Server Side Includes）の実装
+			{
+				name: 'pseudo-ssi',
+				filter: {
+					include: '**/*.html',
+				},
+				transform: async (content, ctx) => {
+					if (typeof content !== 'string') {
+						const decoder = new TextDecoder('utf-8');
+						content = decoder.decode(content);
+					}
+
+					// <!--#include virtual="/path/to/file.html" --> を処理
+					const includeRegex = /<!--#include virtual="([^"]+)" -->/g;
+					let result = content;
+
+					for (const match of content.matchAll(includeRegex)) {
+						const includePath = match[1];
+						const filePath = path.resolve(
+							ctx.context.dir.output,
+							includePath.replace(/^\//, ''),
+						);
+
+						try {
+							const includeContent = await fs.readFile(filePath, 'utf-8');
+							result = result.replace(match[0], includeContent);
+						} catch (error) {
+							console.warn(`Failed to include ${includePath}:`, error);
+						}
+					}
+
+					return result;
+				},
+			},
+
+			// 例3: CSSファイルにソースコメントを追加
+			{
+				name: 'css-source-comment',
+				filter: {
+					contentType: 'text/css',
+				},
+				transform: (content, ctx) => {
+					if (typeof content !== 'string') {
+						const decoder = new TextDecoder('utf-8');
+						content = decoder.decode(content);
+					}
+					const source = ctx.inputPath || ctx.outputPath;
+					return `/* Generated from: ${source} */\n${content}`;
+				},
+			},
+		],
+	},
+};
+```
+
+**ResponseTransformインターフェース:**
+
+```typescript
+interface ResponseTransform {
+	name?: string; // デバッグ用の変換名
+	filter?: {
+		include?: string | string[]; // インクルードするGlobパターン
+		exclude?: string | string[]; // エクスクルードするGlobパターン
+		contentType?: string | string[]; // Content-Typeフィルタ（ワイルドカード対応）
+	};
+	transform: (
+		content: string | ArrayBuffer,
+		context: TransformContext,
+	) => Promise<string | ArrayBuffer> | string | ArrayBuffer;
+}
+
+interface TransformContext {
+	path: string; // リクエストパス
+	contentType: string | undefined; // レスポンスContent-Type
+	inputPath?: string; // 元の入力ファイルパス（利用可能な場合）
+	outputPath: string; // 出力ファイルパス
+	isServe: boolean; // 開発サーバーでは常にtrue
+	context: Context; // 完全な実行コンテキスト
+}
+```
+
+**フィルタオプション:**
+
+- `include`: リクエストパスにマッチするGlobパターン（例: `'**/*.html'`、`['**/*.css', '**/*.js']`）
+- `exclude`: 除外するGlobパターン（例: `'**/_*.html'`で`_`で始まるファイルをスキップ）
+- `contentType`: ワイルドカード対応のContent-Typeフィルタ（例: `'text/html'`、`'text/*'`、`['text/html', 'application/json']`）
+
+**重要な注意事項:**
+
+- 変換関数は`string`または`ArrayBuffer`を受け取ります。テキストベースの変換を行う場合は、`TextDecoder`を使って`ArrayBuffer`をデコードしてください：
+  ```typescript
+  if (typeof content !== 'string') {
+  	const decoder = new TextDecoder('utf-8');
+  	content = decoder.decode(content);
+  }
+  ```
+- 静的ファイル（コンパイル対象外のファイル）は通常`ArrayBuffer`として渡されるため、テキストとして処理する場合は必ずデコードしてください
+- 変換関数のエラーはログに記録されますが、サーバーを停止させません（元のコンテンツが返されます）
+- 変換は配列の順序で実行されます
+- 開発サーバーモード（`kamado server`）でのみ適用され、ビルド時には適用されません
 
 ### CLIコマンド
 

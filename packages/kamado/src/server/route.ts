@@ -12,6 +12,8 @@ import { createCompileFunctionMap } from '../compiler/function-map.js';
 import { getCompilableFileMap } from '../data/map.js';
 import { filePathColorizer } from '../stdout/color.js';
 
+import { applyTransforms } from './transform.js';
+
 interface RouteOptions {
 	verbose?: boolean;
 }
@@ -53,6 +55,27 @@ export async function setRoute(app: Hono, context: Context, options: RouteOption
 
 		const refLocalFilePath = path.resolve(context.dir.output, requestFilePath);
 		let fileId = fileIds.get(refLocalFilePath) ?? fileIdIterator++;
+
+		// Helper to apply transforms and return response
+		const respondWithTransform = async (
+			content: string | ArrayBuffer,
+			outputPath: string,
+			inputPath?: string,
+		) => {
+			const transformed = await applyTransforms(
+				content,
+				{
+					path: requestFilePath,
+					contentType: ctx.res.headers.get('Content-Type') ?? undefined,
+					inputPath,
+					outputPath,
+					isServe: true,
+					context,
+				},
+				context.devServer.transforms,
+			);
+			return ctx.body(transformed);
+		};
 
 		const ext = path.extname(requestFilePath).toLowerCase();
 		switch (ext) {
@@ -129,7 +152,11 @@ export async function setRoute(app: Hono, context: Context, options: RouteOption
 				lanes.update(fileId, `${CHECK_MARK} ${fileName}`);
 
 				if (content) {
-					return ctx.body(content);
+					return respondWithTransform(
+						content,
+						originalFile.outputPath,
+						originalFile.inputPath,
+					);
 				}
 			}
 		}
@@ -142,7 +169,7 @@ export async function setRoute(app: Hono, context: Context, options: RouteOption
 			return ctx.notFound();
 		}
 
-		return ctx.body(buf);
+		return respondWithTransform(buf, refLocalFilePath);
 	});
 
 	return routes;
